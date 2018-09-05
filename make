@@ -6,7 +6,7 @@ makeExec()
 
 run()
 {
-	echo "✓ OS Executed - System will Initialize"
+	echo "✓ OS Executed - Operating System will Initialize"
 	java OS
 }
 
@@ -37,5 +37,5 @@ elif [ "$1" = "makeRun" ]
 then
         makeRun
 else
-	echo "✖✕ Invalid input parameter - no make actions completed"
+	echo "✖ Invalid input parameter - no make actions completed"
 fi
