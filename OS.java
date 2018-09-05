@@ -1,6 +1,3 @@
-//RandomStringHelper
-import java.util.Random;
-import java.security.SecureRandom;
 //FileHandler http://www.avajava.com/tutorials/lessons/how-do-i-read-a-string-from-a-file-line-by-line.html
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +9,6 @@ import java.util.Arrays;
 public class OS {
     static TaskQueue taskList = new TaskQueue();
     static TaskHelpers taskHelpers = new TaskHelpers();
-    static RandomStringHelper stringGenerator = new RandomStringHelper();
     static FileHandler fileHandler = new FileHandler();
     static ReadFile fileReader = new ReadFile();
     static ConfigFile config = new ConfigFile("config.txt");
@@ -20,26 +16,25 @@ public class OS {
     static StringHelper stringHelper = new StringHelper();
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10; i++) {
-            Task randomTask = taskHelpers.randomTask();
-            taskList.enqueue(randomTask);
-        }
-
-        //taskList.print();
-
+        //STARTUP ACTIONS
         console.printDiv();
         if (FileHandler.verifyConfigFile()) {
-            console.log("--Config file has been verified with no syntax errors");
+            console.log("✓ Config file has been verified with no syntax errors");
             FileHandler.loadConfigFile();
-            console.log("--Config file has been loaded");
-            console.log("--Version: " + config.version);
-            console.printNewline();
+            console.log("✓ Config file (v" + config.version + ") has been loaded");
 
             if (FileHandler.verifyInputFile()) {
-                console.log("--Input file has been verified with no syntax errors");
+                console.log("✓ Input file has been verified with no syntax errors");
+                FileHandler.loadInputFile();
+                console.log("✓ Input file has been loaded");
             }
         }
         console.printDiv();
+
+        //SYSTEM IS READY TO PROCESS TASKS
+        //taskList.execute();
+        taskList.print();
+        console.printNewline();
     }
 
     public static class FileHandler {
@@ -47,39 +42,56 @@ public class OS {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n");
             String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""};
             String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"};
+            String[] validTokenHistory = new String[validInputDeclarations.length];
+            //Make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays
+            System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length);
 
-            for (int i = 0; i < splitByLineBreak.length - 1; i++) {
+            for (int i = 0; i < splitByLineBreak.length; i++) {
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
                     String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ ");
                     int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]);
 
                     //check to see if the token is valid
                     if (returnedIndex != -1) {
+                        //if the token has already been used before
+                        if (validTokenHistory[returnedIndex].equals("0")) {
+                            console.log("Duplicate parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
+                        } else {
+                            //remove the token from the history array so that it can't be used twice
+                            validTokenHistory[returnedIndex] = "0";
+                        }
                         //if it is of type double, try to parse it
                         if (validTypeDeclarations[returnedIndex].equals("double")) {
                             try {
                                 Double.parseDouble(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the double provided in " + config.fileName + ": \n \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the double provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("int")) {
                             try {
                                 Integer.parseInt(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the int provided in " + config.fileName + ": \n \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the int provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("fileName")) {
                             if (!stringHelper.substringIsInString(splitByColon[1], ".")) {
-                                console.log("There was an error parsing the filename provided in " + config.fileName + ": \n \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the filename provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("logOption")) {
                             if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Console") && !splitByColon[1].equals("Log to File")) {
-                                console.log("There was an error parsing the log option provided in " + config.fileName + ": \n \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the log option provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         }
                     } else {
-                        console.log("Invalid parameter declaration in " + config.fileName + ": \n \"" + splitByColon[0] + "\"", true);
+                        console.log("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
                     }
+                }
+            }
+
+            //make sure all the tokens were used
+            for (int i = 0; i < validTokenHistory.length - 1; i++) {
+                if (!validTokenHistory[i].equals("0")) {
+                    console.log("Missing parameter declaration in " + config.fileName + ": \n  \"" + validTokenHistory[i] + "\"", true);
                 }
             }
 
@@ -117,7 +129,7 @@ public class OS {
                         config.logFileName = splitByColon[1];
                     } else {
                         //should never reach this after verifying the file
-                        console.log("Invalid parameter declaration in " + config.fileName + ": \n \"" + splitByColon[0] + "\"", true);
+                        console.log("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
                     }
                 }
             }
@@ -125,12 +137,69 @@ public class OS {
 
         public static boolean verifyInputFile() {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
+            String[] validMetaCodeInputDeclarations = {"S","A","P","M","O","I"};
+            String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+
+            for (int i = 0; i < splitByLineBreak.length; i++) {
+                if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;\\ |\\;");
+
+                    for (int j = 0; j < splitBySemiColon.length; j++) {
+                        //check to make sure the string matches the general regex pattern
+                        if (!splitBySemiColon[j].matches("^[A-Z]\\{[a-z]+(\\ *[a-z]*)\\}\\d+")) {
+                            console.log("Syntax error in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \"" + splitBySemiColon[j] + "\"", true);
+                        }
+
+                        //define the items based off of the resulting string
+                        String metaCode = splitBySemiColon[j].substring(0,1);
+                        String numCycles = splitBySemiColon[j].replaceAll("\\D+","");
+                        String descriptor = splitBySemiColon[j];
+                        descriptor = descriptor.substring(descriptor.indexOf("{") + 1);
+                        descriptor = descriptor.substring(0, descriptor.indexOf("}"));
+
+                        //check the values individually
+                        if (stringHelper.findTokenIndexInArray(validMetaCodeInputDeclarations, metaCode) == -1) {
+                            console.log("Invalid meta code in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                        }
+                        if (stringHelper.findTokenIndexInArray(validDescriptorDeclarations, descriptor) == -1) {
+                            console.log("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                        }
+                        try {
+                            Integer.parseInt(numCycles);
+                        } catch (Exception e) {
+                            console.log("There was an error parsing the numCycles int in \"" + config.inputFileName + "\" on line " + i + " for process:\n\"" + splitBySemiColon[j] + "\"", true);
+                        }
+                    }
+                }
+            }
 
             return true;
         }
 
         public static void loadInputFile() {
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
 
+            for (int i = 0; i < splitByLineBreak.length; i++) {
+                if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;\\ |\\;");
+
+                    for (int j = 0; j < splitBySemiColon.length; j++) {
+                        //define the items based off of the resulting string
+                        char metaCode = splitBySemiColon[j].substring(0,1).charAt(0);
+                        int numCycles = Integer.parseInt(splitBySemiColon[j].replaceAll("\\D+",""));
+                        String descriptor = splitBySemiColon[j];
+                        descriptor = descriptor.substring(descriptor.indexOf("{") + 1);
+                        descriptor = descriptor.substring(0, descriptor.indexOf("}"));
+                        //make a temp task and add the data to it
+                        Task temporaryTask = new Task();
+                        temporaryTask.code = metaCode;
+                        temporaryTask.numCycles = numCycles;
+                        temporaryTask.description = descriptor;
+                        //add the temp task to the task list
+                        taskList.enqueue(temporaryTask);
+                    }
+                }
+            }
         }
 
         public static void writeOutputFile() {
@@ -143,6 +212,10 @@ public class OS {
         static int numCreated = 0;
         static Task[] dataArray = new Task[numAllowed];
 
+        public static void execute() {
+            //execute all tasks
+        }
+
         public static boolean enqueue(Task newTask) {
             if (!isFull()) {
                 dataArray[numCreated] = new Task();
@@ -151,12 +224,14 @@ public class OS {
                 dataArray[numCreated].numCycles = newTask.numCycles;
                 numCreated++;
                 return true;
+            } else {
+                console.log("Ran out of queue space - increase numAllowed", true);
             }
+            //should never reach this return
             return false;
         }
 
         public static Task dequeue() {
-
             if (!isEmpty()) {
                 Task returnTask = dataArray[0];
                 for (int i = 1; i < numCreated; i++) {
@@ -203,7 +278,7 @@ public class OS {
                 System.out.println((char)27 + "[37m" + echoStatement);
             } else {
                 System.out.println((char)27 + "[37m");
-                System.out.println((char)27 + "[31m" + "FATAL ERROR: " + echoStatement);
+                System.out.println((char)27 + "[31m" + "✖ FATAL ERROR: " + echoStatement);
                 System.out.println((char)27 + "[37m");
                 crash();
             }
@@ -257,47 +332,9 @@ public class OS {
     }
 
     public static class TaskHelpers {
-        public static Task randomTask() {
-            Random random = new Random();
-            int randomNum = random.nextInt(99);
-
-            String testString = stringGenerator.generate(10, "alphanumeric");
-            char testChar = stringGenerator.generate(10, "metacode").charAt(0);
-
-            Task randomTask = new Task();
-            randomTask.code = testChar;
-            randomTask.description = testString;
-            randomTask.numCycles = randomNum;
-            return randomTask;
-        }
-
         private static Task nullTask() {
             Task nullTask = new Task();
             return nullTask;
-        }
-    }
-
-    public static class RandomStringHelper {
-        private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        private static final String NUMS = "0123456789";
-        private static final String ALPHANUMERIC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        private static final String METACODES = "SAPIOM";
-        private static final SecureRandom RANDOM = new SecureRandom();
-
-        public static String generate(int count, String type) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < count; ++i) {
-                if (type == "alpha") {
-                    sb.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
-                } else if (type == "num") {
-                    sb.append(NUMS.charAt(RANDOM.nextInt(NUMS.length())));
-                } else if (type == "metacode") {
-                    sb.append(METACODES.charAt(RANDOM.nextInt(METACODES.length())));
-                } else {
-                    sb.append(ALPHANUMERIC.charAt(RANDOM.nextInt(ALPHANUMERIC.length())));
-                }
-            }
-            return sb.toString();
         }
     }
 
@@ -341,6 +378,7 @@ public class OS {
             } catch (IOException e) {
                 console.log("The filename \"" + fileName + "\" does not exist or is corrupted", true);
             }
+            //should never reach this return
             return "error";
     	}
     }
