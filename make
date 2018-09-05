@@ -19,6 +19,7 @@ makeRun()
 clean()
 {
 	rm -f *.class
+	rm -f *.lgf
 	clear
 	echo "✓ OS Cleaned - Executable No Longer Available"
 }

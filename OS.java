@@ -5,12 +5,18 @@ import java.io.FileReader;
 import java.io.IOException;
 //StringHelper https://stackoverflow.com/questions/7021074/string-delimiter-in-string-split-method
 import java.util.Arrays;
+//Verify functions
+import java.util.Map;
+import java.util.HashMap;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 public class OS {
     static TaskQueue taskList = new TaskQueue();
     static TaskHelpers taskHelpers = new TaskHelpers();
     static FileHandler fileHandler = new FileHandler();
     static ReadFile fileReader = new ReadFile();
+    static WriteLogFile logFileWriter = new WriteLogFile();
     static ConfigFile config = new ConfigFile("config.txt");
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
@@ -32,8 +38,12 @@ public class OS {
         console.printDiv();
 
         //SYSTEM IS READY TO PROCESS TASKS
-        //taskList.execute();
-        taskList.print();
+        console.log("Configuration File Data");
+        config.outputSettings();
+        console.printNewline();
+        
+        console.log("Meta-Data Metrics");
+        taskList.execute();
         console.printNewline();
     }
 
@@ -43,10 +53,12 @@ public class OS {
             String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""};
             String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"};
             String[] validTokenHistory = new String[validInputDeclarations.length];
+            int lineNum = 0;
             //Make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays
             System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length);
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
+                lineNum++;
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
                     String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ ");
                     int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]);
@@ -55,7 +67,7 @@ public class OS {
                     if (returnedIndex != -1) {
                         //if the token has already been used before
                         if (validTokenHistory[returnedIndex].equals("0")) {
-                            console.log("Duplicate parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
+                            console.log("Duplicate parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"", true);
                         } else {
                             //remove the token from the history array so that it can't be used twice
                             validTokenHistory[returnedIndex] = "0";
@@ -65,25 +77,25 @@ public class OS {
                             try {
                                 Double.parseDouble(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the double provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the double provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("int")) {
                             try {
                                 Integer.parseInt(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the int provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the int provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("fileName")) {
                             if (!stringHelper.substringIsInString(splitByColon[1], ".")) {
-                                console.log("There was an error parsing the filename provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the filename provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("logOption")) {
                             if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Console") && !splitByColon[1].equals("Log to File")) {
-                                console.log("There was an error parsing the log option provided in " + config.fileName + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.log("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
                             }
                         }
                     } else {
-                        console.log("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
+                        console.log("Invalid parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"", true);
                     }
                 }
             }
@@ -91,7 +103,7 @@ public class OS {
             //make sure all the tokens were used
             for (int i = 0; i < validTokenHistory.length - 1; i++) {
                 if (!validTokenHistory[i].equals("0")) {
-                    console.log("Missing parameter declaration in " + config.fileName + ": \n  \"" + validTokenHistory[i] + "\"", true);
+                    console.log("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validTokenHistory[i] + "\"", true);
                 }
             }
 
@@ -110,19 +122,20 @@ public class OS {
                     } else if (splitByColon[0].equals("File Path")) {
                         config.inputFileName = splitByColon[1];
                     } else if (splitByColon[0].equals("Monitor display time {msec}")) {
-                        config.monitorTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("monitor", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Processor cycle time {msec}")) {
-                        config.processorTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("run", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Scanner cycle time {msec}")) {
-                        config.scannerTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("scanner", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Hard drive cycle time {msec}")) {
-                        config.hardDriveTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("hard drive", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Keyboard cycle time {msec}")) {
-                        config.keyboardTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("keyboard", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Memory cycle time {msec}")) {
-                        config.memoryTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("allocate", Integer.parseInt(splitByColon[1]));
+                        config.times.put("block", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Projector cycle time {msec}")) {
-                        config.projectorTime = Integer.parseInt(splitByColon[1]);
+                        config.times.put("projector", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Log")) {
                         config.logOption = splitByColon[1];
                     } else if (splitByColon[0].equals("Log File Path")) {
@@ -133,21 +146,26 @@ public class OS {
                     }
                 }
             }
+
+            //make the log file
+            logFileWriter.makeLogFile();
         }
 
         public static boolean verifyInputFile() {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
             String[] validMetaCodeInputDeclarations = {"S","A","P","M","O","I"};
             String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+            int lineNum = 0;
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
+                lineNum++;
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
                     String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;\\ |\\;");
 
                     for (int j = 0; j < splitBySemiColon.length; j++) {
                         //check to make sure the string matches the general regex pattern
                         if (!splitBySemiColon[j].matches("^[A-Z]\\{[a-z]+(\\ *[a-z]*)\\}\\d+")) {
-                            console.log("Syntax error in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \"" + splitBySemiColon[j] + "\"", true);
+                            console.log("Syntax error in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + splitBySemiColon[j] + "\"", true);
                         }
 
                         //define the items based off of the resulting string
@@ -159,15 +177,15 @@ public class OS {
 
                         //check the values individually
                         if (stringHelper.findTokenIndexInArray(validMetaCodeInputDeclarations, metaCode) == -1) {
-                            console.log("Invalid meta code in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                            console.log("Invalid meta code in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"", true);
                         }
                         if (stringHelper.findTokenIndexInArray(validDescriptorDeclarations, descriptor) == -1) {
-                            console.log("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + i + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                            console.log("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"", true);
                         }
                         try {
                             Integer.parseInt(numCycles);
                         } catch (Exception e) {
-                            console.log("There was an error parsing the numCycles int in \"" + config.inputFileName + "\" on line " + i + " for process:\n\"" + splitBySemiColon[j] + "\"", true);
+                            console.log("There was an error parsing the numCycles int in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n\"" + splitBySemiColon[j] + "\"", true);
                         }
                     }
                 }
@@ -213,7 +231,12 @@ public class OS {
         static Task[] dataArray = new Task[numAllowed];
 
         public static void execute() {
-            //execute all tasks
+            for (int i = 0; i < numCreated; i++) {
+                if (dataArray[i].numCycles > 0) {
+                    int computedTime = dataArray[i].numCycles * config.times.get(dataArray[i].description);
+                    console.log(dataArray[i].code + "{" + dataArray[i].description + "}" + dataArray[i].numCycles + " - " + computedTime + " ms");
+                }
+            }
         }
 
         public static boolean enqueue(Task newTask) {
@@ -274,6 +297,11 @@ public class OS {
     /////////////////////////////////////////////////////
     public static class Console {
         public static void log(String echoStatement, boolean isFatal) {
+            if (config.logOption != null) {
+                if (config.logOption.equals("Log to Both") || config.logOption.equals("Log to File")) {
+                    logFileWriter.appendLog(echoStatement);
+                }
+            }
             if (!isFatal) {
                 System.out.println((char)27 + "[37m" + echoStatement);
             } else {
@@ -305,15 +333,9 @@ public class OS {
         static String fileName;
         static double version;
         static String inputFileName;
-        static int monitorTime;
-        static int processorTime;
-        static int scannerTime;
-        static int hardDriveTime;
-        static int keyboardTime;
-        static int memoryTime;
-        static int projectorTime;
         static String logOption;
         static String logFileName;
+        static Map<String, Integer> times = new HashMap<>();
 
         ConfigFile(String configFileName) {
             super();
@@ -321,6 +343,23 @@ public class OS {
                 fileName = configFileName;
             } else {
                 console.log("Config file is not named", true);
+            }
+        }
+
+        public static void outputSettings() {
+            console.log("Monitor = " + times.get("monitor") + " ms/cycle");
+            console.log("Processor = " + times.get("processor") + " ms/cycle");
+            console.log("Scanner = " + times.get("scanner") + " ms/cycle");
+            console.log("Hard Drive = " + times.get("hard drive") + " ms/cycle");
+            console.log("Keyboard = " + times.get("keyboard") + " ms/cycle");
+            console.log("Memory = " + times.get("memory") + " ms/cycle");
+            console.log("Projector = " + times.get("projector") + " ms/cycle");
+            if (logOption.equals("Log to Both")) {
+                console.log("Logged to monitor and " + logFileName);
+            } else if (logOption.equals("Log to Console")) {
+                console.log("Logged to monitor");
+            } else if (logOption.equals("Log to File")) {
+                console.log("Logged to " + logFileName);
             }
         }
     }
@@ -380,6 +419,51 @@ public class OS {
             }
             //should never reach this return
             return "error";
+    	}
+    }
+
+    public static class WriteLogFile {
+        public static void makeLogFile() {
+            BufferedWriter bw = null;
+            FileWriter fw = null;
+
+            try {
+                fw = new FileWriter(config.logFileName);
+                bw = new BufferedWriter(fw);
+            } catch (IOException e) {
+                console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+            } finally {
+                try {
+                    if (bw != null)
+                        bw.close();
+                    if (fw != null)
+                        fw.close();
+                } catch (IOException ex) {
+                    console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+                }
+            }
+        }
+
+    	public static void appendLog(String inputString) {
+    		BufferedWriter bw = null;
+    		FileWriter fw = null;
+
+    		try {
+    			fw = new FileWriter(config.logFileName, true);
+    			bw = new BufferedWriter(fw);
+    			bw.write(inputString + "\n");
+    		} catch (IOException e) {
+                console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+    		} finally {
+    			try {
+    				if (bw != null)
+    					bw.close();
+    				if (fw != null)
+    					fw.close();
+    			} catch (IOException ex) {
+                    console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+    			}
+    		}
     	}
     }
 }
