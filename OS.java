@@ -5,18 +5,18 @@ import java.io.FileReader;
 import java.io.IOException;
 //StringHelper https://stackoverflow.com/questions/7021074/string-delimiter-in-string-split-method
 import java.util.Arrays;
-//Verify functions
+//FileHandler.verifyInputFile & FileHandler.verifyConfigFile
 import java.util.Map;
 import java.util.HashMap;
+//WriteLogFile
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
 public class OS {
     static TaskQueue taskList = new TaskQueue();
-    static TaskHelpers taskHelpers = new TaskHelpers();
     static FileHandler fileHandler = new FileHandler();
     static ReadFile fileReader = new ReadFile();
-    static WriteLogFile logFileWriter = new WriteLogFile();
+    static WriteFile fileWriter = new WriteFile();
     static ConfigFile config = new ConfigFile("config.txt");
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
@@ -41,7 +41,7 @@ public class OS {
         console.log("Configuration File Data");
         config.outputSettings();
         console.printNewline();
-        
+
         console.log("Meta-Data Metrics");
         taskList.execute();
         console.printNewline();
@@ -138,6 +138,10 @@ public class OS {
                         config.times.put("projector", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Log")) {
                         config.logOption = splitByColon[1];
+                        //tell the user if there will be no further output
+                        if (config.logOption.equals("Log to File")) {
+                            console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
+                        }
                     } else if (splitByColon[0].equals("Log File Path")) {
                         config.logFileName = splitByColon[1];
                     } else {
@@ -148,7 +152,7 @@ public class OS {
             }
 
             //make the log file
-            logFileWriter.makeLogFile();
+            fileWriter.createFile(config.logFileName);
         }
 
         public static boolean verifyInputFile() {
@@ -263,8 +267,10 @@ public class OS {
                 dataArray[numCreated] = null;
                 numCreated--;
                 return returnTask;
+            } else {
+                Task nullTask = new Task();
+                return nullTask;
             }
-            return taskHelpers.nullTask();
         }
 
         public static void print() {
@@ -298,16 +304,36 @@ public class OS {
     public static class Console {
         public static void log(String echoStatement, boolean isFatal) {
             if (config.logOption != null) {
-                if (config.logOption.equals("Log to Both") || config.logOption.equals("Log to File")) {
-                    logFileWriter.appendLog(echoStatement);
+                if (config.logOption.equals("Log to File")) {
+                    writeFileLog(echoStatement, isFatal);
+                } else if (config.logOption.equals("Log to Console")) {
+                    writeConsoleLog(echoStatement, isFatal);
+                } else if (config.logOption.equals("Log to Both")) {
+                    writeConsoleLog(echoStatement, isFatal);
+                    writeFileLog(echoStatement, isFatal);
                 }
+            } else {
+                //since config file hasn't loaded yet, just output to console
+                writeConsoleLog(echoStatement, isFatal);
             }
+        }
+
+        public static void writeConsoleLog(String echoStatement, boolean isFatal) {
             if (!isFatal) {
                 System.out.println((char)27 + "[37m" + echoStatement);
             } else {
                 System.out.println((char)27 + "[37m");
                 System.out.println((char)27 + "[31m" + "✖ FATAL ERROR: " + echoStatement);
                 System.out.println((char)27 + "[37m");
+                crash();
+            }
+        }
+
+        public static void writeFileLog(String echoStatement, boolean isFatal) {
+            if (!isFatal) {
+                fileWriter.write(config.logFileName, true, echoStatement);
+            } else {
+                fileWriter.write(config.logFileName, true, "✖ FATAL ERROR: " + echoStatement);
                 crash();
             }
         }
@@ -370,13 +396,6 @@ public class OS {
         int numCycles;
     }
 
-    public static class TaskHelpers {
-        private static Task nullTask() {
-            Task nullTask = new Task();
-            return nullTask;
-        }
-    }
-
     public static class StringHelper {
         public static String[] splitOnDelimeter(String inputString, String delimiter) {
             String[] data = inputString.split(delimiter);
@@ -422,38 +441,23 @@ public class OS {
     	}
     }
 
-    public static class WriteLogFile {
-        public static void makeLogFile() {
-            BufferedWriter bw = null;
-            FileWriter fw = null;
-
-            try {
-                fw = new FileWriter(config.logFileName);
-                bw = new BufferedWriter(fw);
-            } catch (IOException e) {
-                console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
-            } finally {
-                try {
-                    if (bw != null)
-                        bw.close();
-                    if (fw != null)
-                        fw.close();
-                } catch (IOException ex) {
-                    console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
-                }
-            }
+    public static class WriteFile {
+        public static void createFile(String fileName) {
+            write(fileName, false, "");
         }
 
-    	public static void appendLog(String inputString) {
+    	public static void write(String fileName, boolean appendMode, String inputString) {
     		BufferedWriter bw = null;
     		FileWriter fw = null;
 
     		try {
-    			fw = new FileWriter(config.logFileName, true);
+    			fw = new FileWriter(fileName, appendMode);
     			bw = new BufferedWriter(fw);
-    			bw.write(inputString + "\n");
+                if (inputString != "") {
+                    bw.write(inputString + "\n");
+                }
     		} catch (IOException e) {
-                console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+                console.log("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted", true);
     		} finally {
     			try {
     				if (bw != null)
@@ -461,7 +465,7 @@ public class OS {
     				if (fw != null)
     					fw.close();
     			} catch (IOException ex) {
-                    console.log("The log file \"" + config.logFileName + "\" can not be opened or is corrupted", true);
+                    console.log("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted", true);
     			}
     		}
     	}
