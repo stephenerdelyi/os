@@ -1,13 +1,13 @@
 makeExec()
 {
-	javac OS.java
+	javac sim1.java
 	echo "✓ OS Compiled - Executable Now Available"
 }
 
 run()
 {
 	echo "✓ OS Executed - Operating System will Initialize"
-	java OS
+	java sim1 config_1.conf
 }
 
 makeRun()

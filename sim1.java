@@ -12,16 +12,18 @@ import java.util.HashMap;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
-public class OS {
+public class sim1 {
     static TaskQueue taskList = new TaskQueue();
     static FileHandler fileHandler = new FileHandler();
     static ReadFile fileReader = new ReadFile();
     static WriteFile fileWriter = new WriteFile();
-    static ConfigFile config = new ConfigFile("config.txt");
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
+    static ConfigFile config;
 
     public static void main(String[] args) {
+        config = new ConfigFile(args[0]); //create the config file from the input parameter
+
         //STARTUP ACTIONS
         console.printDiv();
         if (FileHandler.verifyConfigFile()) {
