@@ -1,18 +1,15 @@
-//FileHandler http://www.avajava.com/tutorials/lessons/how-do-i-read-a-string-from-a-file-line-by-line.html
-import java.io.BufferedReader;
+import java.io.BufferedReader; //WriteFile, ReadFile, FileHandler http://www.avajava.com/tutorials/lessons/how-do-i-read-a-string-from-a-file-line-by-line.html
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-//StringHelper https://stackoverflow.com/questions/7021074/string-delimiter-in-string-split-method
-import java.util.Arrays;
-//FileHandler.verifyInputFile & FileHandler.verifyConfigFile
-import java.util.Map;
-import java.util.HashMap;
-//WriteLogFile
-import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays; //StringHelper https://stackoverflow.com/questions/7021074/string-delimiter-in-string-split-method
+import java.util.Map; //FileHandler.verifyInputFile & FileHandler.verifyConfigFile
+import java.util.HashMap;
 
 public class sim1 {
+    static boolean allowFatalExecution = false;
     static TaskQueue taskList = new TaskQueue();
     static FileHandler fileHandler = new FileHandler();
     static ReadFile fileReader = new ReadFile();
@@ -22,15 +19,15 @@ public class sim1 {
     static ConfigFile config;
 
     public static void main(String[] args) {
-        config = new ConfigFile(args[0]); //create the config file from the input parameter
-
-        //STARTUP ACTIONS
+        /////////////////////////////////////////////////////
+        //                 STARTUP ACTIONS                 //
+        /////////////////////////////////////////////////////
+        config = new ConfigFile(args[0]);
         console.printDiv();
         if (FileHandler.verifyConfigFile()) {
             console.log("✓ Config file has been verified with no syntax errors");
             FileHandler.loadConfigFile();
             console.log("✓ Config file (v" + config.version + ") has been loaded");
-
             if (FileHandler.verifyInputFile()) {
                 console.log("✓ Input file has been verified with no syntax errors");
                 FileHandler.loadInputFile();
@@ -39,7 +36,9 @@ public class sim1 {
         }
         console.printDiv();
 
-        //SYSTEM IS READY TO PROCESS TASKS
+        /////////////////////////////////////////////////////
+        //                   SYSTEM READY                  //
+        /////////////////////////////////////////////////////
         console.log("Configuration File Data");
         config.outputSettings();
         console.printNewline();
@@ -50,22 +49,24 @@ public class sim1 {
     }
 
     public static class FileHandler {
+        //verifyConfigFile - verify the configuration file
         public static boolean verifyConfigFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n");
-            String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""};
-            String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"};
-            String[] validTokenHistory = new String[validInputDeclarations.length];
-            int lineNum = 0;
-            //Make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays
-            System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length);
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n"); //array of strings containing each line read in from the config file
+            String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
+            String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in validInputDeclarations used for error checking
+            String[] validTokenHistory = new String[validInputDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
+            System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length); //make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays to accomplish error checking
+            int lineNum = 0; //used for error logging
 
+            //loop through each line in configuration file
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 lineNum++;
+                //if the current line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ ");
-                    int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]);
+                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ "); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+                    int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]); //the index of the token found in validInputDeclarations (= -1 if not found in array)
 
-                    //check to see if the token is valid
+                    //if the token is not invalid
                     if (returnedIndex != -1) {
                         //if the token has already been used before
                         if (validTokenHistory[returnedIndex].equals("0")) {
@@ -74,7 +75,7 @@ public class sim1 {
                             //remove the token from the history array so that it can't be used twice
                             validTokenHistory[returnedIndex] = "0";
                         }
-                        //if it is of type double, try to parse it
+                        //if it is of type ______, try to parse it & verify the validity of the value
                         if (validTypeDeclarations[returnedIndex].equals("double")) {
                             try {
                                 Double.parseDouble(splitByColon[1]);
@@ -111,14 +112,17 @@ public class sim1 {
 
             return true;
         }
-
+        //loadConfigFile - load the configuration file into the system
         public static void loadConfigFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n");
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n"); //array of strings containing each line read in from the config file
 
+            //loop through each line in the file
             for (int i = 0; i < splitByLineBreak.length - 1; i++) {
+                //if line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ ");
+                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ "); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
 
+                    //check to find which config value should be filled
                     if (splitByColon[0].equals("Version/Phase")) {
                         config.version = Double.parseDouble(splitByColon[1]);
                     } else if (splitByColon[0].equals("File Path")) {
@@ -140,7 +144,7 @@ public class sim1 {
                         config.times.put("projector", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Log")) {
                         config.logOption = splitByColon[1];
-                        //tell the user if there will be no further output
+                        //tell the user if there will be no further console output
                         if (config.logOption.equals("Log to File")) {
                             console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
                         }
@@ -157,6 +161,7 @@ public class sim1 {
             fileWriter.createFile(config.logFileName);
         }
 
+        //verifyInputFile - verify the input file
         public static boolean verifyInputFile() {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
             String[] validMetaCodeInputDeclarations = {"S","A","P","M","O","I"};
@@ -318,6 +323,22 @@ public class sim1 {
                 //since config file hasn't loaded yet, just output to console
                 writeConsoleLog(echoStatement, isFatal);
             }
+
+            //after we write everything, if the log was fatal we should ask to crash
+            if (isFatal) {
+                //if we allow fatal executions
+                if (allowFatalExecution) {
+                    //prompt the user to continue
+                    console.writeConsoleLog("Continue execution? (Y/N)", false);
+                    String name = System.console().readLine();
+                    //if the user does not want to continue, then crash
+                    if (!name.equals("y") && !name.equals("Y")) {
+                        crash();
+                    }
+                } else {
+                    crash();
+                }
+            }
         }
 
         public static void writeConsoleLog(String echoStatement, boolean isFatal) {
@@ -327,7 +348,6 @@ public class sim1 {
                 System.out.println((char)27 + "[37m");
                 System.out.println((char)27 + "[31m" + "✖ FATAL ERROR: " + echoStatement);
                 System.out.println((char)27 + "[37m");
-                crash();
             }
         }
 
@@ -336,7 +356,6 @@ public class sim1 {
                 fileWriter.write(config.logFileName, true, echoStatement);
             } else {
                 fileWriter.write(config.logFileName, true, "✖ FATAL ERROR: " + echoStatement);
-                crash();
             }
         }
 
@@ -349,10 +368,10 @@ public class sim1 {
         }
 
         public static void printNewline() {
-            log("", false);
+            log(" ", false);
         }
 
-        public static void crash() {
+        private static void crash() {
             System.exit(0);
         }
     }
