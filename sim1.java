@@ -22,16 +22,16 @@ public class sim1 {
         /////////////////////////////////////////////////////
         //                 STARTUP ACTIONS                 //
         /////////////////////////////////////////////////////
-        config = new ConfigFile(args[0]);
+        config = new ConfigFile(args[0]); //init the config file with the name provided from terminal parameter
         console.printDiv();
         if (FileHandler.verifyConfigFile()) {
             console.log("✓ Config file has been verified with no syntax errors");
             FileHandler.loadConfigFile();
-            console.log("✓ Config file (v" + config.version + ") has been loaded");
+            console.log("✓ Config file (v" + config.version + ") has been loaded [" + config.fileName + "]");
             if (FileHandler.verifyInputFile()) {
                 console.log("✓ Input file has been verified with no syntax errors");
                 FileHandler.loadInputFile();
-                console.log("✓ Input file has been loaded");
+                console.log("✓ Input file has been loaded [" + config.inputFileName + "]");
             }
         }
         console.printDiv();
@@ -51,26 +51,33 @@ public class sim1 {
     public static class FileHandler {
         //verifyConfigFile - verify the configuration file
         public static boolean verifyConfigFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n"); //array of strings containing each line read in from the config file
+            fileReader.read(config.fileName); //actually read the config file and store it in the class's string var
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
             String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
             String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in validInputDeclarations used for error checking
             String[] validTokenHistory = new String[validInputDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
             System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length); //make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays to accomplish error checking
             int lineNum = 0; //used for error logging
 
+            //verify the config file extension is valid
+            String fileExtension = stringHelper.splitOnDelimeter(config.fileName, "\\.")[1];
+            if (!fileExtension.equals("conf")) {
+                console.error("Config file does not end in .conf");
+            }
+
             //loop through each line in configuration file
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 lineNum++;
                 //if the current line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ "); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
                     int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]); //the index of the token found in validInputDeclarations (= -1 if not found in array)
 
                     //if the token is not invalid
                     if (returnedIndex != -1) {
                         //if the token has already been used before
                         if (validTokenHistory[returnedIndex].equals("0")) {
-                            console.log("Duplicate parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"", true);
+                            console.error("Duplicate parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"");
                         } else {
                             //remove the token from the history array so that it can't be used twice
                             validTokenHistory[returnedIndex] = "0";
@@ -80,25 +87,25 @@ public class sim1 {
                             try {
                                 Double.parseDouble(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the double provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.error("There was an error parsing the double provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("int")) {
                             try {
                                 Integer.parseInt(splitByColon[1]);
                             } catch (Exception e) {
-                                console.log("There was an error parsing the int provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.error("There was an error parsing the int provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("fileName")) {
                             if (!stringHelper.substringIsInString(splitByColon[1], ".")) {
-                                console.log("There was an error parsing the filename provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                                console.error("There was an error parsing the filename provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
                         } else if (validTypeDeclarations[returnedIndex].equals("logOption")) {
-                            if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Console") && !splitByColon[1].equals("Log to File")) {
-                                console.log("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"", true);
+                            if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Monitor") && !splitByColon[1].equals("Log to File")) {
+                                console.error("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + " (invalid option specified): \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
                         }
                     } else {
-                        console.log("Invalid parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"", true);
+                        console.error("Invalid parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"");
                     }
                 }
             }
@@ -106,7 +113,7 @@ public class sim1 {
             //make sure all the tokens were used
             for (int i = 0; i < validTokenHistory.length - 1; i++) {
                 if (!validTokenHistory[i].equals("0")) {
-                    console.log("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validTokenHistory[i] + "\"", true);
+                    console.error("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validTokenHistory[i] + "\"");
                 }
             }
 
@@ -114,13 +121,13 @@ public class sim1 {
         }
         //loadConfigFile - load the configuration file into the system
         public static void loadConfigFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.fileName), "\\\n"); //array of strings containing each line read in from the config file
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
 
             //loop through each line in the file
             for (int i = 0; i < splitByLineBreak.length - 1; i++) {
                 //if line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\:\\ "); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+                    String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
 
                     //check to find which config value should be filled
                     if (splitByColon[0].equals("Version/Phase")) {
@@ -144,39 +151,55 @@ public class sim1 {
                         config.times.put("projector", Integer.parseInt(splitByColon[1]));
                     } else if (splitByColon[0].equals("Log")) {
                         config.logOption = splitByColon[1];
-                        //tell the user if there will be no further console output
-                        if (config.logOption.equals("Log to File")) {
-                            console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
-                        }
                     } else if (splitByColon[0].equals("Log File Path")) {
                         config.logFileName = splitByColon[1];
                     } else {
                         //should never reach this after verifying the file
-                        console.log("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"", true);
+                        console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");
                     }
                 }
             }
 
+            //verify the input file extension is valid
+            String fileExtension = stringHelper.splitOnDelimeter(config.inputFileName, "\\.")[1];
+            if (!fileExtension.equals("mdf")) {
+                console.error("Input file does not end in .mdf");
+            }
+
             //make the log file
             fileWriter.createFile(config.logFileName);
+            //tell the user if there will be no further monitor/file output
+            if (config.logOption.equals("Log to File")) {
+                console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
+            } else if (config.logOption.equals("Log to Monitor")) {
+                console.writeFileLog("✓ Output from this point on will show only in the monitor window (log to monitor statement is in config file)", false);
+            }
         }
 
         //verifyInputFile - verify the input file
         public static boolean verifyInputFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
+            fileReader.read(config.inputFileName); //actually read the input file and store it in the class's string var
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
             String[] validMetaCodeInputDeclarations = {"S","A","P","M","O","I"};
             String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
             int lineNum = 0;
 
+            //make sure the file is not empty
+            if (splitByLineBreak.length <= 1) {
+                console.error("Input file is empty");
+            }
+
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 lineNum++;
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
-                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;\\ |\\;");
+                    //pre-process the line data to fix white space issues
+                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validDescriptorDeclarations);
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ";");
 
                     for (int j = 0; j < splitBySemiColon.length; j++) {
                         //check to make sure the string matches the general regex pattern
-                        if (!splitBySemiColon[j].matches("^[A-Z]\\{[a-z]+(\\ *[a-z]*)\\}\\d+")) {
-                            console.log("Syntax error in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + splitBySemiColon[j] + "\"", true);
+                        if (!splitBySemiColon[j].matches("^[A-Z][\\s]*\\{[a-z]+(\\ *[a-z]*)\\}[\\s]*\\d+")) {
+                            console.error("Syntax error in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + splitBySemiColon[j] + "\"");
                         }
 
                         //define the items based off of the resulting string
@@ -188,15 +211,15 @@ public class sim1 {
 
                         //check the values individually
                         if (stringHelper.findTokenIndexInArray(validMetaCodeInputDeclarations, metaCode) == -1) {
-                            console.log("Invalid meta code in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                            console.error("Invalid meta code in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"");
                         }
                         if (stringHelper.findTokenIndexInArray(validDescriptorDeclarations, descriptor) == -1) {
-                            console.log("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"", true);
+                            console.error("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"");
                         }
                         try {
                             Integer.parseInt(numCycles);
                         } catch (Exception e) {
-                            console.log("There was an error parsing the numCycles int in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n\"" + splitBySemiColon[j] + "\"", true);
+                            console.error("There was an error parsing the numCycles int in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n\"" + splitBySemiColon[j] + "\"");
                         }
                     }
                 }
@@ -206,11 +229,14 @@ public class sim1 {
         }
 
         public static void loadInputFile() {
-            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.read(config.inputFileName), "\\\n");
+            String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+            String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
-                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;\\ |\\;");
+                    //pre-process the line data to fix white space issues
+                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validDescriptorDeclarations);
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ";");
 
                     for (int j = 0; j < splitBySemiColon.length; j++) {
                         //define the items based off of the resulting string
@@ -230,10 +256,6 @@ public class sim1 {
                 }
             }
         }
-
-        public static void writeOutputFile() {
-
-        }
     }
 
     public static class TaskQueue {
@@ -242,12 +264,21 @@ public class sim1 {
         static Task[] dataArray = new Task[numAllowed];
 
         public static void execute() {
+            //this option will not delete the data as it runs
             for (int i = 0; i < numCreated; i++) {
                 if (dataArray[i].numCycles > 0) {
                     int computedTime = dataArray[i].numCycles * config.times.get(dataArray[i].description);
                     console.log(dataArray[i].code + "{" + dataArray[i].description + "}" + dataArray[i].numCycles + " - " + computedTime + " ms");
                 }
             }
+            //this option will delete the data as it runs
+            /*while (!isEmpty()) {
+                Task nextTask = dequeue();
+                if (nextTask.numCycles > 0) {
+                    int computedTime = nextTask.numCycles * config.times.get(nextTask.description);
+                    console.log(nextTask.code + "{" + nextTask.description + "}" + nextTask.numCycles + " - " + computedTime + " ms");
+                }
+            }*/
         }
 
         public static boolean enqueue(Task newTask) {
@@ -259,7 +290,7 @@ public class sim1 {
                 numCreated++;
                 return true;
             } else {
-                console.log("Ran out of queue space - increase numAllowed", true);
+                console.error("Ran out of queue space - increase numAllowed");
             }
             //should never reach this return
             return false;
@@ -313,7 +344,7 @@ public class sim1 {
             if (config.logOption != null) {
                 if (config.logOption.equals("Log to File")) {
                     writeFileLog(echoStatement, isFatal);
-                } else if (config.logOption.equals("Log to Console")) {
+                } else if (config.logOption.equals("Log to Monitor")) {
                     writeConsoleLog(echoStatement, isFatal);
                 } else if (config.logOption.equals("Log to Both")) {
                     writeConsoleLog(echoStatement, isFatal);
@@ -343,11 +374,11 @@ public class sim1 {
 
         public static void writeConsoleLog(String echoStatement, boolean isFatal) {
             if (!isFatal) {
-                System.out.println((char)27 + "[37m" + echoStatement);
+                System.out.println((char)27 + "[39m" + echoStatement);
             } else {
-                System.out.println((char)27 + "[37m");
+                System.out.println((char)27 + "[39m");
                 System.out.println((char)27 + "[31m" + "✖ FATAL ERROR: " + echoStatement);
-                System.out.println((char)27 + "[37m");
+                System.out.println((char)27 + "[39m");
             }
         }
 
@@ -361,6 +392,10 @@ public class sim1 {
 
         public static void log(String echoStatement) {
             log(echoStatement, false);
+        }
+
+        public static void error(String echoStatement) {
+            log(echoStatement, true);
         }
 
         public static void printDiv() {
@@ -395,15 +430,15 @@ public class sim1 {
 
         public static void outputSettings() {
             console.log("Monitor = " + times.get("monitor") + " ms/cycle");
-            console.log("Processor = " + times.get("processor") + " ms/cycle");
+            console.log("Processor = " + times.get("run") + " ms/cycle");
             console.log("Scanner = " + times.get("scanner") + " ms/cycle");
             console.log("Hard Drive = " + times.get("hard drive") + " ms/cycle");
             console.log("Keyboard = " + times.get("keyboard") + " ms/cycle");
-            console.log("Memory = " + times.get("memory") + " ms/cycle");
+            console.log("Memory = " + times.get("allocate") + " ms/cycle");
             console.log("Projector = " + times.get("projector") + " ms/cycle");
             if (logOption.equals("Log to Both")) {
                 console.log("Logged to monitor and " + logFileName);
-            } else if (logOption.equals("Log to Console")) {
+            } else if (logOption.equals("Log to Monitor")) {
                 console.log("Logged to monitor");
             } else if (logOption.equals("Log to File")) {
                 console.log("Logged to " + logFileName);
@@ -438,10 +473,32 @@ public class sim1 {
             }
             return -1;
         }
+
+        public static String removeBadWhitespace(String inputString, String[] validKeys) {
+            inputString = inputString.replaceAll("[\\s]*",""); //first remove all white space from the line
+
+            //loop through all valid keys
+            for (int i = 0; i < validKeys.length; i++) {
+                //if the valid key even contains a space
+                if (substringIsInString(validKeys[i], " ")) {
+                    String keyWithSpace = validKeys[i];
+                    String keyWithoutSpace = validKeys[i].replaceAll(" ", "");
+                    //if the key is present in the string without spaces
+                    if (substringIsInString(inputString, keyWithoutSpace)) {
+                        //replace with spaces
+                        inputString = inputString.replaceAll(keyWithoutSpace, keyWithSpace);
+                    }
+                }
+            }
+
+            return inputString;
+        }
     }
 
     public static class ReadFile {
-        public static String read(String fileName) {
+        public static String lastReadFile;
+
+        public static void read(String fileName) {
     	    try {
                 File file = new File(fileName);
                 FileReader fileReader = new FileReader(file);
@@ -453,12 +510,10 @@ public class sim1 {
                 	stringBuffer.append("\n");
                 }
                 fileReader.close();
-                return stringBuffer.toString();
+                lastReadFile = stringBuffer.toString();
             } catch (IOException e) {
-                console.log("The filename \"" + fileName + "\" does not exist or is corrupted", true);
+                console.error("The filename \"" + fileName + "\" does not exist or is corrupted");
             }
-            //should never reach this return
-            return "error";
     	}
     }
 
@@ -478,7 +533,7 @@ public class sim1 {
                     bw.write(inputString + "\n");
                 }
     		} catch (IOException e) {
-                console.log("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted", true);
+                console.error("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted");
     		} finally {
     			try {
     				if (bw != null)
@@ -486,7 +541,7 @@ public class sim1 {
     				if (fw != null)
     					fw.close();
     			} catch (IOException ex) {
-                    console.log("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted", true);
+                    console.error("The file \"" + fileName + "\" can not be written to because it could not be opened or it is corrupted");
     			}
     		}
     	}
