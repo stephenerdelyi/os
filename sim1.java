@@ -197,7 +197,7 @@ public class sim1 {
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 lineNum++;
-                if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
+                if (stringHelper.substringIsInString(splitByLineBreak[i], "{")) {
                     //pre-process the line data to fix white space issues
                     splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validKeys.inputDescriptorDeclarations);
                     String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;|\\.");
@@ -239,7 +239,7 @@ public class sim1 {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
-                if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
+                if (stringHelper.substringIsInString(splitByLineBreak[i], "{")) {
                     //pre-process the line data to fix white space issues
                     splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validKeys.inputDescriptorDeclarations);
                     String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;|\\.");
@@ -462,12 +462,12 @@ public class sim1 {
         String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
         String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
         String[] configTokenHistory = new String[configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
-        String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"};
-        String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+        String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
+        String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"}; //string array that contains all valid input file description values
 
         ValidKeys() {
             super();
-            System.arraycopy(configKeyDeclarations, 0, configTokenHistory, 0, configKeyDeclarations.length); //make a second copy of configKeyDeclarations in configTokenHistory since we need two working arrays to accomplish error checking
+            System.arraycopy(configKeyDeclarations, 0, configTokenHistory, 0, configKeyDeclarations.length); //make a second copy of configKeyDeclarations tocd configTokenHistory since we need two working arrays to accomplish error checking
         }
     }
 
