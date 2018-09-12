@@ -16,6 +16,7 @@ public class sim1 {
     static WriteFile fileWriter = new WriteFile();
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
+    static ValidKeys validKeys = new ValidKeys();
     static ConfigFile config;
 
     public static void main(String[] args) {
@@ -53,10 +54,6 @@ public class sim1 {
         public static boolean verifyConfigFile() {
             fileReader.read(config.fileName); //actually read the config file and store it in the class's string var
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
-            String[] validInputDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
-            String[] validTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in validInputDeclarations used for error checking
-            String[] validTokenHistory = new String[validInputDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
-            System.arraycopy(validInputDeclarations, 0, validTokenHistory, 0, validInputDeclarations.length); //make a second copy of validInputDeclarations in validTokenHistory since we need two working arrays to accomplish error checking
             int lineNum = 0; //used for error logging
 
             //verify the config file extension is valid
@@ -71,35 +68,42 @@ public class sim1 {
                 //if the current line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
                     String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
-                    int returnedIndex = stringHelper.findTokenIndexInArray(validInputDeclarations, splitByColon[0]); //the index of the token found in validInputDeclarations (= -1 if not found in array)
+                    int returnedIndex = stringHelper.findTokenIndexInArray(validKeys.configKeyDeclarations, splitByColon[0]); //the index of the token found in configKeyDeclarations (= -1 if not found in array)
 
                     //if the token is not invalid
                     if (returnedIndex != -1) {
                         //if the token has already been used before
-                        if (validTokenHistory[returnedIndex].equals("0")) {
+                        if (validKeys.configTokenHistory[returnedIndex].equals("0")) {
                             console.error("Duplicate parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"");
                         } else {
                             //remove the token from the history array so that it can't be used twice
-                            validTokenHistory[returnedIndex] = "0";
+                            validKeys.configTokenHistory[returnedIndex] = "0";
                         }
                         //if it is of type ______, try to parse it & verify the validity of the value
-                        if (validTypeDeclarations[returnedIndex].equals("double")) {
+                        if (validKeys.configTypeDeclarations[returnedIndex].equals("double")) {
                             try {
                                 Double.parseDouble(splitByColon[1]);
                             } catch (Exception e) {
                                 console.error("There was an error parsing the double provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
-                        } else if (validTypeDeclarations[returnedIndex].equals("int")) {
+                        } else if (validKeys.configTypeDeclarations[returnedIndex].equals("int")) {
                             try {
                                 Integer.parseInt(splitByColon[1]);
                             } catch (Exception e) {
                                 console.error("There was an error parsing the int provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
-                        } else if (validTypeDeclarations[returnedIndex].equals("fileName")) {
+                        } else if (validKeys.configTypeDeclarations[returnedIndex].equals("fileName")) {
                             if (!stringHelper.substringIsInString(splitByColon[1], ".")) {
                                 console.error("There was an error parsing the filename provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
-                        } else if (validTypeDeclarations[returnedIndex].equals("logOption")) {
+                            if (splitByColon[0].equals("Log File Path")) {
+                                //verify the log file extension is valid
+                                String logFileExtension = stringHelper.splitOnDelimeter(splitByColon[1], "\\.")[1];
+                                if (!logFileExtension.equals("lgf")) {
+                                    console.error("Log file name does not end in .lgf");
+                                }
+                            }
+                        } else if (validKeys.configTypeDeclarations[returnedIndex].equals("logOption")) {
                             if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Monitor") && !splitByColon[1].equals("Log to File")) {
                                 console.error("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + " (invalid option specified): \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                             }
@@ -111,9 +115,9 @@ public class sim1 {
             }
 
             //make sure all the tokens were used
-            for (int i = 0; i < validTokenHistory.length - 1; i++) {
-                if (!validTokenHistory[i].equals("0")) {
-                    console.error("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validTokenHistory[i] + "\"");
+            for (int i = 0; i < validKeys.configTokenHistory.length - 1; i++) {
+                if (!validKeys.configTokenHistory[i].equals("0")) {
+                    console.error("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validKeys.configTokenHistory[i] + "\"");
                 }
             }
 
@@ -128,6 +132,10 @@ public class sim1 {
                 //if line is not a comment
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
                     String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+
+                    //make begin and end count for 0 time
+                    config.times.put("begin", 0);
+                    config.times.put("finish", 0);
 
                     //check to find which config value should be filled
                     if (splitByColon[0].equals("Version/Phase")) {
@@ -180,8 +188,6 @@ public class sim1 {
         public static boolean verifyInputFile() {
             fileReader.read(config.inputFileName); //actually read the input file and store it in the class's string var
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
-            String[] validMetaCodeInputDeclarations = {"S","A","P","M","O","I"};
-            String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
             int lineNum = 0;
 
             //make sure the file is not empty
@@ -193,8 +199,8 @@ public class sim1 {
                 lineNum++;
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
                     //pre-process the line data to fix white space issues
-                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validDescriptorDeclarations);
-                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ";");
+                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validKeys.inputDescriptorDeclarations);
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;|\\.");
 
                     for (int j = 0; j < splitBySemiColon.length; j++) {
                         //check to make sure the string matches the general regex pattern
@@ -210,10 +216,10 @@ public class sim1 {
                         descriptor = descriptor.substring(0, descriptor.indexOf("}"));
 
                         //check the values individually
-                        if (stringHelper.findTokenIndexInArray(validMetaCodeInputDeclarations, metaCode) == -1) {
+                        if (stringHelper.findTokenIndexInArray(validKeys.inputMetaCodeDeclarations, metaCode) == -1) {
                             console.error("Invalid meta code in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \""+ metaCode + "\" in \"" + splitBySemiColon[j] + "\"");
                         }
-                        if (stringHelper.findTokenIndexInArray(validDescriptorDeclarations, descriptor) == -1) {
+                        if (stringHelper.findTokenIndexInArray(validKeys.inputDescriptorDeclarations, descriptor) == -1) {
                             console.error("Invalid descriptor value in \"" + config.inputFileName + "\" on line " + lineNum + " for process:\n  \"" + descriptor + "\" in \"" + splitBySemiColon[j] + "\"");
                         }
                         try {
@@ -229,14 +235,14 @@ public class sim1 {
         }
 
         public static void loadInputFile() {
-            String[] validDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+            //String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
                 if (stringHelper.substringIsInString(splitByLineBreak[i], ";")) {
                     //pre-process the line data to fix white space issues
-                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validDescriptorDeclarations);
-                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ";");
+                    splitByLineBreak[i] = stringHelper.removeBadWhitespace(splitByLineBreak[i], validKeys.inputDescriptorDeclarations);
+                    String[] splitBySemiColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "\\;|\\.");
 
                     for (int j = 0; j < splitBySemiColon.length; j++) {
                         //define the items based off of the resulting string
@@ -450,6 +456,19 @@ public class sim1 {
         char code;
         String description;
         int numCycles;
+    }
+
+    public static class ValidKeys {
+        String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
+        String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
+        String[] configTokenHistory = new String[configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
+        String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"};
+        String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
+
+        ValidKeys() {
+            super();
+            System.arraycopy(configKeyDeclarations, 0, configTokenHistory, 0, configKeyDeclarations.length); //make a second copy of configKeyDeclarations in configTokenHistory since we need two working arrays to accomplish error checking
+        }
     }
 
     public static class StringHelper {
