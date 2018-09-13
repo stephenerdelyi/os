@@ -2,17 +2,30 @@ JCOMPILER = javac
 JRUNNER = java
 MAIN = sim1
 CONFIG = config_1.conf
+#INPSTRING = $(MAKECMDGOALS)
+#CUSTOMCONFIG = ${INPSTRING[1]}
 
-default: compiler.class
+default:
+	@echo ""
+	@echo "Makefile Options:"
+	@echo ""
+	@echo "make compile - compiles the java code"
+	@echo "make run     - compiles and runs the java code with config_1.conf"
+	@echo "make clean   - removes all .class and .lgf files"
+	@echo ""
 
-compiler.class: $(MAIN).java
+compile: $(MAIN).java
 	@($(JCOMPILER) $(MAIN).java)
 	clear
 	@echo "✓ OS Compiled - Executable Now Available"
 
-run: compiler.class
+run: compile
 	@echo "✓ OS Executed - Operating System will Initialize"
 	@($(JRUNNER) $(MAIN) $(CONFIG))
+
+#custom: compile
+#	@echo "✓ OS Executed - Operating System will Initialize"
+#	@($(JRUNNER) $(MAIN) $(2))
 
 clean:
 	rm -f *.class

@@ -49,6 +49,12 @@ public class sim1 {
         console.printNewline();
     }
 
+    /////////////////////////////////////////////////////
+    //                 HELPER CLASSES                  //
+    /////////////////////////////////////////////////////
+    ///////////////////
+    // FileHandler: handles all file processing (excluding reading/writing)
+    ///////////////////
     public static class FileHandler {
         //verifyConfigFile - verify the configuration file
         public static boolean verifyConfigFile() {
@@ -123,7 +129,7 @@ public class sim1 {
 
             return true;
         }
-        //loadConfigFile - load the configuration file into the system
+        //loadConfigFile - load the verified configuration file into the system
         public static void loadConfigFile() {
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
 
@@ -234,8 +240,8 @@ public class sim1 {
             return true;
         }
 
+        //loadInputFile - load the verified input file into the system
         public static void loadInputFile() {
-            //String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"};
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n");
 
             for (int i = 0; i < splitByLineBreak.length; i++) {
@@ -251,42 +257,43 @@ public class sim1 {
                         String descriptor = splitBySemiColon[j];
                         descriptor = descriptor.substring(descriptor.indexOf("{") + 1);
                         descriptor = descriptor.substring(0, descriptor.indexOf("}"));
-                        //make a temp task and add the data to it
-                        Task temporaryTask = new Task();
-                        temporaryTask.code = metaCode;
-                        temporaryTask.numCycles = numCycles;
-                        temporaryTask.description = descriptor;
+                        //make a new (temp) task and add the data to it
+                        Task newTask = new Task();
+                        newTask.code = metaCode;
+                        newTask.numCycles = numCycles;
+                        newTask.description = descriptor;
                         //add the temp task to the task list
-                        taskList.enqueue(temporaryTask);
+                        taskList.enqueue(newTask);
                     }
                 }
             }
         }
     }
 
+    ///////////////////
+    // TaskQueue: A queue consisting of objects of type Task; contains all typical queue functions
+    ///////////////////
     public static class TaskQueue {
         static int numAllowed = 150;
         static int numCreated = 0;
         static Task[] dataArray = new Task[numAllowed];
 
+        //execute - processes all tasks in the queue according to the current OS specifications
         public static void execute() {
-            //this option will not delete the data as it runs
-            for (int i = 0; i < numCreated; i++) {
-                if (dataArray[i].numCycles > 0) {
-                    int computedTime = dataArray[i].numCycles * config.times.get(dataArray[i].description);
-                    console.log(dataArray[i].code + "{" + dataArray[i].description + "}" + dataArray[i].numCycles + " - " + computedTime + " ms");
-                }
-            }
-            //this option will delete the data as it runs
-            /*while (!isEmpty()) {
+            //while there are tasks to complete
+            while (!isEmpty()) {
+                //remove the next task from the front of the queue
                 Task nextTask = dequeue();
+                //if the cycle time is greater than instantaneous
                 if (nextTask.numCycles > 0) {
+                    //simply output the data for this project
                     int computedTime = nextTask.numCycles * config.times.get(nextTask.description);
                     console.log(nextTask.code + "{" + nextTask.description + "}" + nextTask.numCycles + " - " + computedTime + " ms");
                 }
-            }*/
+            }
         }
 
+        //enqueue - takes the input task and adds it to the queue
         public static boolean enqueue(Task newTask) {
             if (!isFull()) {
                 dataArray[numCreated] = new Task();
@@ -302,6 +309,7 @@ public class sim1 {
             return false;
         }
 
+        //dequeue - takes the task at the front of the queue and returns it
         public static Task dequeue() {
             if (!isEmpty()) {
                 Task returnTask = dataArray[0];
@@ -317,6 +325,7 @@ public class sim1 {
             }
         }
 
+        //print - outputs the contents of the task queue and the data inside it
         public static void print() {
             for (int i = 0; i < numCreated; i++) {
                 int j = i + 1;
@@ -327,6 +336,7 @@ public class sim1 {
             }
         }
 
+        //isFull - returns whether or not the queue is full
         private static boolean isFull() {
             if (numCreated >= numAllowed) {
                 return true;
@@ -334,6 +344,7 @@ public class sim1 {
             return false;
         }
 
+        //isEmpty - returns whether or not the queue is empty
         private static boolean isEmpty() {
             if (numCreated == 0) {
                 return true;
@@ -342,10 +353,11 @@ public class sim1 {
         }
     }
 
-    /////////////////////////////////////////////////////
-    //                 HELPER CLASSES                  //
-    /////////////////////////////////////////////////////
+    ///////////////////
+    // Console: contains important output functions to the monitor or log file; also contains the error and crash functions
+    ///////////////////
     public static class Console {
+        //log - contains all important logic for logging to the monitor, log file, or both
         public static void log(String echoStatement, boolean isFatal) {
             if (config.logOption != null) {
                 if (config.logOption.equals("Log to File")) {
@@ -378,6 +390,7 @@ public class sim1 {
             }
         }
 
+        //writeConsoleLog - writes a log message to the monitor only
         public static void writeConsoleLog(String echoStatement, boolean isFatal) {
             if (!isFatal) {
                 System.out.println((char)27 + "[39m" + echoStatement);
@@ -388,6 +401,7 @@ public class sim1 {
             }
         }
 
+        //writeFileLog - writes a log message to the log file only
         public static void writeFileLog(String echoStatement, boolean isFatal) {
             if (!isFatal) {
                 fileWriter.write(config.logFileName, true, echoStatement);
@@ -396,27 +410,35 @@ public class sim1 {
             }
         }
 
+        //log - parameter override for cleaner log statement outside class
         public static void log(String echoStatement) {
             log(echoStatement, false);
         }
 
+        //error - writes a log message with isFatal set to true - will crash program
         public static void error(String echoStatement) {
             log(echoStatement, true);
         }
 
+        //printDiv - prints a divider to the monitor or log file
         public static void printDiv() {
             log("=======================================================", false);
         }
 
+        //printNewline - prints a new line to the monitor or log file
         public static void printNewline() {
             log(" ", false);
         }
 
+        //crash - crashes the program prematurely so that the files can not be processed after a syntax error is found
         private static void crash() {
             System.exit(0);
         }
     }
 
+    ///////////////////
+    // ConfigFile: Holds all data for the system's configuration file
+    ///////////////////
     public static class ConfigFile {
         static String fileName;
         static double version;
@@ -425,6 +447,7 @@ public class sim1 {
         static String logFileName;
         static Map<String, Integer> times = new HashMap<>();
 
+        //ConfigFile (constructor) - requires that the config file is named to proceed
         ConfigFile(String configFileName) {
             super();
             if (configFileName != "" && configFileName != null) {
@@ -434,6 +457,7 @@ public class sim1 {
             }
         }
 
+        //outputSettings - output the configuration settings
         public static void outputSettings() {
             console.log("Monitor = " + times.get("monitor") + " ms/cycle");
             console.log("Processor = " + times.get("run") + " ms/cycle");
@@ -452,12 +476,18 @@ public class sim1 {
         }
     }
 
+    ///////////////////
+    // Task: object data structure that represents a system task
+    ///////////////////
     public static class Task {
         char code;
         String description;
         int numCycles;
     }
 
+    ///////////////////
+    // ValidKeys: holds all the valid keys or tokens for the configuration file and data input file (makes managing possible inputs easier)
+    ///////////////////
     public static class ValidKeys {
         String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
         String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
@@ -465,18 +495,24 @@ public class sim1 {
         String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
         String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"}; //string array that contains all valid input file description values
 
+        //ValidKeys (constructor) - copies the configKeyDeclarations array for error detection
         ValidKeys() {
             super();
             System.arraycopy(configKeyDeclarations, 0, configTokenHistory, 0, configKeyDeclarations.length); //make a second copy of configKeyDeclarations tocd configTokenHistory since we need two working arrays to accomplish error checking
         }
     }
 
+    ///////////////////
+    // StringHelper: contains many helper fuctions for strings used throughout portions of the program
+    ///////////////////
     public static class StringHelper {
+        //splitOnDelimeter - split the input string into an array based on the delimiter
         public static String[] splitOnDelimeter(String inputString, String delimiter) {
             String[] data = inputString.split(delimiter);
             return data;
         }
 
+        //substringIsInString - check to see if the given sub string exists within the input string
         public static boolean substringIsInString(String inputString, String subString) {
             if (inputString.toLowerCase().contains(subString.toLowerCase())) {
                 return true;
@@ -484,6 +520,7 @@ public class sim1 {
             return false;
         }
 
+        //findTokenIndexInArray - loops through the input array to see if the token to find exists within it
         public static int findTokenIndexInArray(String[] inputArray, String tokenToFind) {
             for (int i = 0; i < inputArray.length; i++) {
                 if (inputArray[i].equals(tokenToFind)) {
@@ -493,8 +530,10 @@ public class sim1 {
             return -1;
         }
 
+        //removeBadWhitespace - removes all white space except for that which descriptor tokens are found
         public static String removeBadWhitespace(String inputString, String[] validKeys) {
-            inputString = inputString.replaceAll("[\\s]*",""); //first remove all white space from the line
+            //first remove all white space from the line
+            inputString = inputString.replaceAll("[\\s]*","");
 
             //loop through all valid keys
             for (int i = 0; i < validKeys.length; i++) {
@@ -514,9 +553,13 @@ public class sim1 {
         }
     }
 
+    ///////////////////
+    // ReadFile: file reader used to read input and config file content
+    ///////////////////
     public static class ReadFile {
         public static String lastReadFile;
 
+        //read - read the file and store it to the lastReadFile variable
         public static void read(String fileName) {
     	    try {
                 File file = new File(fileName);
@@ -536,11 +579,16 @@ public class sim1 {
     	}
     }
 
+    ///////////////////
+    // WriteFile: file writer used to write output log file content
+    ///////////////////
     public static class WriteFile {
+        //createFile - creates a file named by the input string
         public static void createFile(String fileName) {
             write(fileName, false, "");
         }
 
+        //write - writes output to the given file name
     	public static void write(String fileName, boolean appendMode, String inputString) {
     		BufferedWriter bw = null;
     		FileWriter fw = null;
