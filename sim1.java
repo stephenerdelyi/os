@@ -101,12 +101,19 @@ public class sim1 {
                         } else if (validKeys.configTypeDeclarations[returnedIndex].equals("fileName")) {
                             if (!stringHelper.substringIsInString(splitByColon[1], ".")) {
                                 console.error("There was an error parsing the filename provided in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
-                            }
-                            if (splitByColon[0].equals("Log File Path")) {
-                                //verify the log file extension is valid
-                                String logFileExtension = stringHelper.splitOnDelimeter(splitByColon[1], "\\.")[1];
-                                if (!logFileExtension.equals("lgf")) {
-                                    console.error("Log file name does not end in .lgf");
+                            } else {
+                                if (splitByColon[0].equals("Log File Path")) {
+                                    //verify the log file extension is valid
+                                    String logFileExtension = stringHelper.splitOnDelimeter(splitByColon[1], "\\.")[1];
+                                    if (!logFileExtension.equals("lgf")) {
+                                        console.error("Log file name does not end in .lgf");
+                                    }
+                                } else if (splitByColon[0].equals("File Path")) {
+                                    //verify the input file extension is valid
+                                    String inputFileExtension = stringHelper.splitOnDelimeter(splitByColon[1], "\\.")[1];
+                                    if (!inputFileExtension.equals("mdf")) {
+                                        console.error("Input file does not end in .mdf");
+                                    }
                                 }
                             }
                         } else if (validKeys.configTypeDeclarations[returnedIndex].equals("logOption")) {
@@ -123,7 +130,7 @@ public class sim1 {
             //make sure all the tokens were used
             for (int i = 0; i < validKeys.configTokenHistory.length - 1; i++) {
                 if (!validKeys.configTokenHistory[i].equals("0")) {
-                    console.error("Missing parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + validKeys.configTokenHistory[i] + "\"");
+                    console.error("Missing parameter declaration in " + config.fileName + ": \n  \"" + validKeys.configTokenHistory[i] + "\"");
                 }
             }
 
@@ -172,12 +179,6 @@ public class sim1 {
                         console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");
                     }
                 }
-            }
-
-            //verify the input file extension is valid
-            String fileExtension = stringHelper.splitOnDelimeter(config.inputFileName, "\\.")[1];
-            if (!fileExtension.equals("mdf")) {
-                console.error("Input file does not end in .mdf");
             }
 
             //make the log file
