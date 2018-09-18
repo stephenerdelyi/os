@@ -1,6 +1,6 @@
 JCOMPILER = javac
 JRUNNER = java
-MAIN = sim1
+MAIN = sim2
 CONFIG = config_1.conf
 #INPSTRING = $(MAKECMDGOALS)
 #CUSTOMCONFIG = ${INPSTRING[1]}

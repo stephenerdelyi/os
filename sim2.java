@@ -8,7 +8,7 @@ import java.util.Arrays; //StringHelper https://stackoverflow.com/questions/7021
 import java.util.Map; //FileHandler.verifyInputFile & FileHandler.verifyConfigFile
 import java.util.HashMap;
 
-public class sim1 {
+public class sim2 {
     static boolean allowFatalExecution = false;
     static TaskQueue taskList = new TaskQueue();
     static FileHandler fileHandler = new FileHandler();
@@ -60,6 +60,8 @@ public class sim1 {
         public static boolean verifyConfigFile() {
             fileReader.read(config.fileName); //actually read the config file and store it in the class's string var
             String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
+            String[] configTokenHistory = new String[validKeys.configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
+            System.arraycopy(validKeys.configKeyDeclarations, 0, configTokenHistory, 0, validKeys.configKeyDeclarations.length); //make a second copy of configKeyDeclarations tocd configTokenHistory since we need two working arrays to accomplish error checking
             int lineNum = 0; //used for error logging
 
             //verify the config file extension is valid
@@ -79,11 +81,11 @@ public class sim1 {
                     //if the token is not invalid
                     if (returnedIndex != -1) {
                         //if the token has already been used before
-                        if (validKeys.configTokenHistory[returnedIndex].equals("0")) {
+                        if (configTokenHistory[returnedIndex].equals("0")) {
                             console.error("Duplicate parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"");
                         } else {
                             //remove the token from the history array so that it can't be used twice
-                            validKeys.configTokenHistory[returnedIndex] = "0";
+                            configTokenHistory[returnedIndex] = "0";
                         }
                         //if it is of type ______, try to parse it & verify the validity of the value
                         if (validKeys.configTypeDeclarations[returnedIndex].equals("double")) {
@@ -128,9 +130,9 @@ public class sim1 {
             }
 
             //make sure all the tokens were used
-            for (int i = 0; i < validKeys.configTokenHistory.length - 1; i++) {
-                if (!validKeys.configTokenHistory[i].equals("0")) {
-                    console.error("Missing parameter declaration in " + config.fileName + ": \n  \"" + validKeys.configTokenHistory[i] + "\"");
+            for (int i = 0; i < configTokenHistory.length - 1; i++) {
+                if (!configTokenHistory[i].equals("0")) {
+                    console.error("Missing parameter declaration in " + config.fileName + ": \n  \"" + configTokenHistory[i] + "\"");
                 }
             }
 
@@ -326,6 +328,16 @@ public class sim1 {
             }
         }
 
+        //peek - returns the task at the front of the queue but doesn't remove it
+        public static Task peek() {
+            if (!isEmpty()) {
+                return dataArray[0];
+            } else {
+                Task nullTask = new Task();
+                return nullTask;
+            }
+        }
+
         //print - outputs the contents of the task queue and the data inside it
         public static void print() {
             for (int i = 0; i < numCreated; i++) {
@@ -492,15 +504,8 @@ public class sim1 {
     public static class ValidKeys {
         String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
         String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
-        String[] configTokenHistory = new String[configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
         String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
         String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"}; //string array that contains all valid input file description values
-
-        //ValidKeys (constructor) - copies the configKeyDeclarations array for error detection
-        ValidKeys() {
-            super();
-            System.arraycopy(configKeyDeclarations, 0, configTokenHistory, 0, configKeyDeclarations.length); //make a second copy of configKeyDeclarations tocd configTokenHistory since we need two working arrays to accomplish error checking
-        }
     }
 
     ///////////////////
