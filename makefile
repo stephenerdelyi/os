@@ -17,7 +17,7 @@ default:
 compile: $(MAIN).java
 	@($(JCOMPILER) $(MAIN).java)
 	clear
-	@echo "✓ OS Compiled - Executable Now Available"
+	@echo "✓ OS Compiled - Executable Now Available [$(MAIN)]"
 
 run: compile
 	@echo "✓ OS Executed - Operating System will Initialize"

@@ -17,6 +17,7 @@ public class sim2 {
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
     static ValidKeys validKeys = new ValidKeys();
+    static PCB PCB = new PCB();
     static ConfigFile config;
 
     public static void main(String[] args) {
@@ -40,18 +41,51 @@ public class sim2 {
         /////////////////////////////////////////////////////
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
-        console.log("Configuration File Data");
+        /*console.log("Configuration File Data");
         config.outputSettings();
         console.printNewline();
 
         console.log("Meta-Data Metrics");
         taskList.execute();
-        console.printNewline();
+        console.printNewline();*/
+        PCB.setProcessState("Waiting");
+        console.log("Memory: " + config.systemMemory);
     }
 
     /////////////////////////////////////////////////////
     //                 HELPER CLASSES                  //
     /////////////////////////////////////////////////////
+    ///////////////////
+    // PCB:
+    ///////////////////
+    public static class PCB {
+        static int processState = 0; //review setProcessState for integer values
+
+        //setProcessState -
+        public static <Generic> void setProcessState(Generic inputProcessState) {
+            if (inputProcessState instanceof String) {
+                int processStateIndex = stringHelper.findTokenIndexInArray(validKeys.processStateDeclarations, inputProcessState.toString());
+                if (processStateIndex != -1) {
+                    processState = processStateIndex;
+                }
+            } else if (inputProcessState instanceof Integer) {
+                int processStateIndex = (Integer) inputProcessState;
+                if (processStateIndex >= 0 && processStateIndex < validKeys.processStateDeclarations.length) {
+                    processState = processStateIndex;
+                }
+            }
+        }
+
+        //getProcessStateInt -
+        public static int getProcessStateInt() {
+            return processState;
+        }
+
+        //getProcessStateString -
+        public static String getProcessStateString() {
+            return validKeys.processStateDeclarations[processState];
+        }
+    }
     ///////////////////
     // FileHandler: handles all file processing (excluding reading/writing)
     ///////////////////
@@ -176,6 +210,8 @@ public class sim2 {
                         config.logOption = splitByColon[1];
                     } else if (splitByColon[0].equals("Log File Path")) {
                         config.logFileName = splitByColon[1];
+                    } else if (splitByColon[0].equals("System memory {kbytes}")) {
+                        config.systemMemory = Integer.parseInt(splitByColon[1]);
                     } else {
                         //should never reach this after verifying the file
                         console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");
@@ -455,6 +491,7 @@ public class sim2 {
     public static class ConfigFile {
         static String fileName;
         static double version;
+        static int systemMemory;
         static String inputFileName;
         static String logOption;
         static String logFileName;
@@ -502,10 +539,11 @@ public class sim2 {
     // ValidKeys: holds all the valid keys or tokens for the configuration file and data input file (makes managing possible inputs easier)
     ///////////////////
     public static class ValidKeys {
-        String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","Log","Log File Path",""}; //a string array of all valid config declarations for error checking
-        String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
+        String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","System memory {kbytes}","Log","Log File Path"}; //a string array of all valid config declarations for error checking
+        String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
         String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
-        String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"}; //string array that contains all valid input file description values
+        String[] inputDescriptorDeclarations = {"run","begin","start","allocate","monitor","hard drive","scanner","projector","block","keyboard","end","finish"}; //string array that contains all valid input file description values
+        String[] processStateDeclarations = {"Start", "Ready", "Running", "Waiting", "Exit"};
     }
 
     ///////////////////
