@@ -7,18 +7,20 @@ import java.io.IOException;
 import java.util.Arrays; //StringHelper https://stackoverflow.com/questions/7021074/string-delimiter-in-string-split-method
 import java.util.Map; //FileHandler.verifyInputFile & FileHandler.verifyConfigFile
 import java.util.HashMap;
+import java.text.DecimalFormat; //Clock
+import java.math.RoundingMode;
 
 public class sim2 {
     static boolean allowFatalExecution = false;
     static TaskQueue taskList = new TaskQueue();
+    static TaskStack taskStack = new TaskStack();
     static FileHandler fileHandler = new FileHandler();
-    static ReadFile fileReader = new ReadFile();
-    static WriteFile fileWriter = new WriteFile();
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
     static ValidKeys validKeys = new ValidKeys();
     static PCB PCB = new PCB();
     static ConfigFile config;
+    static Clock clock = new Clock();
 
     public static void main(String[] args) {
         /////////////////////////////////////////////////////
@@ -45,16 +47,147 @@ public class sim2 {
         config.outputSettings();
         console.printNewline();
 
-        console.log("Meta-Data Metrics");
-        taskList.execute();
-        console.printNewline();*/
-        PCB.setProcessState("Waiting");
-        console.log("Memory: " + config.systemMemory);
+        console.log("Meta-Data Metrics");*/
+        execute();
+
+        console.printNewline();
+    }
+
+    //execute - processes all tasks in the queue according to the current OS specifications
+    public static void execute() {
+        int processCount = 0;
+        //clock.start();
+        //console.log(clock.getDurationTime() + " - Simulator program starting");
+        //while there are tasks to complete
+        while (!taskList.isEmpty()) {
+            //remove the next task from the front of the queue
+            Task currentTask = taskList.dequeue();
+
+            if (currentTask.code == 'S') {
+                if (currentTask.description.equals("start")) {
+                    PCB.setProcessState("Start");
+                    clock.start();
+                    taskStack.push(currentTask);
+                    console.log(clock.getDurationTime() + " - Simulator program starting");
+                } else if (currentTask.description.equals("end")) {
+                    PCB.setProcessState("Exit");
+                    taskStack.pop();
+                    console.log(clock.getDurationTime() + " - Simulator program ending");
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+            } else if (currentTask.code == 'A') {
+                if (currentTask.description.equals("start")) {
+                    processCount++;
+                    taskStack.push(currentTask);
+                    console.log(clock.getDurationTime() + " - OS: preparing process " + processCount);
+                    //should prepare process here
+                    console.log(clock.getDurationTime() + " - OS: starting process " + processCount);
+                    PCB.setProcessState("Ready");
+                } else if (currentTask.description.equals("end")) {
+                    taskStack.pop();
+                    //should remove process here
+                    console.log(clock.getDurationTime() + " - OS: removing process " + processCount);
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+            } else if (currentTask.code == 'P') {
+                PCB.setProcessState("Running");
+                if (currentTask.description.equals("run")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start processing action");
+                    //should process action here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end processing action");
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+                PCB.setProcessState("Waiting");
+            } else if (currentTask.code == 'M') {
+                PCB.setProcessState("Running");
+                if (currentTask.description.equals("allocate")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": allocating memory");
+                    //sholuld allocate memory here
+                    //should create hex value here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": memory allocated at 0x00000000");
+                } else if (currentTask.description.equals("block")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start memory blocking");
+                    //should do memory blocking here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end memory blocking");
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+                PCB.setProcessState("Waiting");
+            } else if (currentTask.code == 'O') {
+                PCB.setProcessState("Running");
+                if (currentTask.description.equals("monitor")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start monitor output");
+                    //should do monitor output thread here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end monitor output");
+                } else if (currentTask.description.equals("projector")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start projector output");
+                    //should do projector output thread here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end projector output");
+                } else if (currentTask.description.equals("hard drive")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive output");
+                    //should do hard drive output thread here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive output");
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+                PCB.setProcessState("Waiting");
+            } else if (currentTask.code == 'I') {
+                PCB.setProcessState("Running");
+                if (currentTask.description.equals("keyboard")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start keyboard input");
+                    //should do keyboard input thread here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end keyboard input");
+                } else if (currentTask.description.equals("hard drive")) {
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive input");
+                    //should do hard drive input thread here
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive input");
+                } else {
+                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+                }
+                PCB.setProcessState("Waiting");
+            }
+        }
+
+        if (!taskStack.isEmpty()) {
+            console.printDiv();
+            console.log("Stack printout:");
+            taskStack.print();
+            console.error("Invalid combination of S/A in runtime stack");
+        }
     }
 
     /////////////////////////////////////////////////////
     //                 HELPER CLASSES                  //
     /////////////////////////////////////////////////////
+    ///////////////////
+    // Clock:
+    ///////////////////
+    public static class Clock {
+        static long startTime;
+
+        public static void start() {
+            startTime = System.nanoTime();
+        }
+
+        public static String getDurationTime() {
+            double val = (System.nanoTime() - startTime) * .000000001;
+            DecimalFormat df = new DecimalFormat("#.######");
+            String formattedString = df.format(val);
+            String[] splitString = stringHelper.splitOnDelimeter(formattedString, "\\.");
+
+            if (splitString[1].length() < 6) {
+                int runFor = 6 - splitString[1].length();
+                for (int i = 0; i < runFor; i++) {
+                    splitString[1] = splitString[1] + "0"; //append a 0
+                }
+                formattedString = splitString[0] + "." + splitString[1];
+            }
+            return formattedString;
+        }
+    }
     ///////////////////
     // PCB:
     ///////////////////
@@ -90,6 +223,9 @@ public class sim2 {
     // FileHandler: handles all file processing (excluding reading/writing)
     ///////////////////
     public static class FileHandler {
+        static ReadFile fileReader = new ReadFile();
+        static WriteFile fileWriter = new WriteFile();
+
         //verifyConfigFile - verify the configuration file
         public static boolean verifyConfigFile() {
             fileReader.read(config.fileName); //actually read the config file and store it in the class's string var
@@ -317,21 +453,6 @@ public class sim2 {
         static int numCreated = 0;
         static Task[] dataArray = new Task[numAllowed];
 
-        //execute - processes all tasks in the queue according to the current OS specifications
-        public static void execute() {
-            //while there are tasks to complete
-            while (!isEmpty()) {
-                //remove the next task from the front of the queue
-                Task nextTask = dequeue();
-                //if the cycle time is greater than instantaneous
-                if (nextTask.numCycles > 0) {
-                    //simply output the data for this project
-                    int computedTime = nextTask.numCycles * config.times.get(nextTask.description);
-                    console.log(nextTask.code + "{" + nextTask.description + "}" + nextTask.numCycles + " - " + computedTime + " ms");
-                }
-            }
-        }
-
         //enqueue - takes the input task and adds it to the queue
         public static boolean enqueue(Task newTask) {
             if (!isFull()) {
@@ -403,9 +524,86 @@ public class sim2 {
     }
 
     ///////////////////
+    // TaskStack: A stack consisting of objects of type Task; contains all typical stack functions
+    ///////////////////
+    public static class TaskStack {
+        static int numAllowed = 150;
+        static int numCreated = 0;
+        static Task[] dataArray = new Task[numAllowed];
+
+        //push - takes the input task and adds it to the stack
+        public static boolean push(Task newTask) {
+            if (!isFull()) {
+                dataArray[numCreated] = new Task();
+                dataArray[numCreated].code = newTask.code;
+                dataArray[numCreated].description = newTask.description;
+                dataArray[numCreated].numCycles = newTask.numCycles;
+                numCreated++;
+                return true;
+            } else {
+                console.error("Ran out of queue space - increase numAllowed");
+            }
+            //should never reach this return
+            return false;
+        }
+
+        //pop - takes the task at the top of the stack and returns it
+        public static Task pop() {
+            if (!isEmpty()) {
+                Task returnTask = dataArray[numCreated - 1];
+                dataArray[numCreated - 1] = null;
+                numCreated--;
+                return returnTask;
+            } else {
+                Task nullTask = new Task();
+                return nullTask;
+            }
+        }
+
+        //peek - returns the task at the top of the stack but doesn't remove it
+        public static Task peek() {
+            if (!isEmpty()) {
+                return dataArray[numCreated - 1];
+            } else {
+                Task nullTask = new Task();
+                return nullTask;
+            }
+        }
+
+        //print - outputs the contents of the task stack and the data inside it
+        public static void print() {
+            for (int i = 0; i < numCreated; i++) {
+                int j = i + 1;
+                char code = dataArray[i].code;
+                String description = dataArray[i].description;
+                int numCycles = dataArray[i].numCycles;
+                console.log("Task " + j + ": " + code + " - " + description + " - " + numCycles);
+            }
+        }
+
+        //isFull - returns whether or not the stack is full
+        private static boolean isFull() {
+            if (numCreated >= numAllowed) {
+                return true;
+            }
+            return false;
+        }
+
+        //isEmpty - returns whether or not the stack is empty
+        private static boolean isEmpty() {
+            if (numCreated == 0) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    ///////////////////
     // Console: contains important output functions to the monitor or log file; also contains the error and crash functions
     ///////////////////
     public static class Console {
+        static WriteFile fileWriter = new WriteFile();
+
         //log - contains all important logic for logging to the monitor, log file, or both
         public static void log(String echoStatement, boolean isFatal) {
             if (config.logOption != null) {
@@ -539,10 +737,10 @@ public class sim2 {
     // ValidKeys: holds all the valid keys or tokens for the configuration file and data input file (makes managing possible inputs easier)
     ///////////////////
     public static class ValidKeys {
-        String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","System memory {kbytes}","Log","Log File Path"}; //a string array of all valid config declarations for error checking
+        String[] configKeyDeclarations = {"Version/Phase","File Path","Monitor display time {msec}","Processor cycle time {msec}","Scanner cycle time {msec}","Hard drive cycle time {msec}","Keyboard cycle time {msec}","Memory cycle time {msec}","Projector cycle time {msec}","System memory {kbytes}|System memory {Mbytes}|System memory {Gbytes}","Log","Log File Path"}; //a string array of all valid config declarations for error checking
         String[] configTypeDeclarations = {"double","fileName","int","int","int","int","int","int","int","int","logOption","fileName"}; //a string array of datatypes that correspond to the entires in configKeyDeclarations used for error checking
         String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
-        String[] inputDescriptorDeclarations = {"run","begin","start","allocate","monitor","hard drive","scanner","projector","block","keyboard","end","finish"}; //string array that contains all valid input file description values
+        String[] inputDescriptorDeclarations = {"run","start","allocate","monitor","hard drive","scanner","projector","block","keyboard","end"}; //string array that contains all valid input file description values
         String[] processStateDeclarations = {"Start", "Ready", "Running", "Waiting", "Exit"};
     }
 
