@@ -9,6 +9,7 @@ import java.util.Map; //FileHandler.verifyInputFile & FileHandler.verifyConfigFi
 import java.util.HashMap;
 import java.text.DecimalFormat; //Clock
 import java.math.RoundingMode;
+import java.util.Random; //StringHelper.makeFakeHex
 
 public class sim2 {
     static boolean allowFatalExecution = false;
@@ -43,11 +44,6 @@ public class sim2 {
         /////////////////////////////////////////////////////
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
-        /*console.log("Configuration File Data");
-        config.outputSettings();
-        console.printNewline();
-
-        console.log("Meta-Data Metrics");*/
         execute();
 
         console.printNewline();
@@ -56,8 +52,7 @@ public class sim2 {
     //execute - processes all tasks in the queue according to the current OS specifications
     public static void execute() {
         int processCount = 0;
-        //clock.start();
-        //console.log(clock.getDurationTime() + " - Simulator program starting");
+
         //while there are tasks to complete
         while (!taskList.isEmpty()) {
             //remove the next task from the front of the queue
@@ -96,6 +91,7 @@ public class sim2 {
                 if (currentTask.description.equals("run")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start processing action");
                     //should process action here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end processing action");
                 } else {
                     console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
@@ -106,11 +102,12 @@ public class sim2 {
                 if (currentTask.description.equals("allocate")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": allocating memory");
                     //sholuld allocate memory here
-                    //should create hex value here
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": memory allocated at 0x00000000");
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                    console.log(clock.getDurationTime() + " - Process " + processCount + ": memory allocated at " + stringHelper.makeFakeHex());
                 } else if (currentTask.description.equals("block")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start memory blocking");
                     //should do memory blocking here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end memory blocking");
                 } else {
                     console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
@@ -121,14 +118,17 @@ public class sim2 {
                 if (currentTask.description.equals("monitor")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start monitor output");
                     //should do monitor output thread here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end monitor output");
                 } else if (currentTask.description.equals("projector")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start projector output");
                     //should do projector output thread here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end projector output");
                 } else if (currentTask.description.equals("hard drive")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive output");
                     //should do hard drive output thread here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive output");
                 } else {
                     console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
@@ -139,10 +139,12 @@ public class sim2 {
                 if (currentTask.description.equals("keyboard")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start keyboard input");
                     //should do keyboard input thread here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end keyboard input");
                 } else if (currentTask.description.equals("hard drive")) {
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive input");
                     //should do hard drive input thread here
+                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
                     console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive input");
                 } else {
                     console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
@@ -169,7 +171,11 @@ public class sim2 {
         static long startTime;
 
         public static void start() {
-            startTime = System.nanoTime();
+            startTime = getTime();
+        }
+
+        public static long getTime() {
+            return System.nanoTime();
         }
 
         public static String getDurationTime() {
@@ -186,6 +192,16 @@ public class sim2 {
                 formattedString = splitString[0] + "." + splitString[1];
             }
             return formattedString;
+        }
+
+        public static void timer(long waitTimeInMs) {
+            long waitTimeInNs = waitTimeInMs * 3225310;
+            //long waitTimeInNs = waitTimeInMs * 1000000;
+            long runUntil = getTime() + waitTimeInNs;
+
+            while (getTime() < runUntil) {
+                //do nothing
+            }
         }
     }
     ///////////////////
@@ -348,6 +364,10 @@ public class sim2 {
                         config.logFileName = splitByColon[1];
                     } else if (splitByColon[0].equals("System memory {kbytes}")) {
                         config.systemMemory = Integer.parseInt(splitByColon[1]);
+                    } else if (splitByColon[0].equals("System memory {Mbytes}")) {
+                        config.systemMemory = Integer.parseInt(splitByColon[1]) * 1000;
+                    } else if (splitByColon[0].equals("System memory {Gbytes}")) {
+                        config.systemMemory = Integer.parseInt(splitByColon[1]) * 1000000;
                     } else {
                         //should never reach this after verifying the file
                         console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");
@@ -765,8 +785,17 @@ public class sim2 {
         //findTokenIndexInArray - loops through the input array to see if the token to find exists within it
         public static int findTokenIndexInArray(String[] inputArray, String tokenToFind) {
             for (int i = 0; i < inputArray.length; i++) {
-                if (inputArray[i].equals(tokenToFind)) {
-                    return i;
+                if (inputArray[i].contains("|")) {
+                    String[] splitSubArray = splitOnDelimeter(inputArray[i], "\\|");
+                    for (int j = 0; j < splitSubArray.length; j++) {
+                        if (splitSubArray[j].equals(tokenToFind)) {
+                            return i;
+                        }
+                    }
+                } else {
+                    if (inputArray[i].equals(tokenToFind)) {
+                        return i;
+                    }
                 }
             }
             return -1;
@@ -792,6 +821,33 @@ public class sim2 {
             }
 
             return inputString;
+        }
+
+        public static String makeFakeHex() {
+            String returnString = "0x";
+            Random rand = new Random();
+
+            for (int i = 0; i < 8; i++) {
+                int randomN = rand.nextInt(15);
+
+                if (randomN == 10) {
+                    returnString = returnString + "A";
+                } else if (randomN == 11) {
+                    returnString = returnString + "B";
+                } else if (randomN == 12) {
+                    returnString = returnString + "C";
+                } else if (randomN == 13) {
+                    returnString = returnString + "D";
+                } else if (randomN == 14) {
+                    returnString = returnString + "E";
+                } else if (randomN == 15) {
+                    returnString = returnString + "F";
+                } else {
+                    returnString = returnString + Integer.toString(randomN);
+                }
+            }
+
+            return returnString;
         }
     }
 
