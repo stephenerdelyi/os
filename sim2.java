@@ -15,6 +15,7 @@ public class sim2 {
     static boolean allowFatalExecution = false;
     static TaskQueue taskList = new TaskQueue();
     static TaskStack taskStack = new TaskStack();
+    static TaskProcessor taskProcessor = new TaskProcessor();
     static FileHandler fileHandler = new FileHandler();
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
@@ -51,105 +52,23 @@ public class sim2 {
 
     //execute - processes all tasks in the queue according to the current OS specifications
     public static void execute() {
-        int processCount = 0;
-
         //while there are tasks to complete
         while (!taskList.isEmpty()) {
             //remove the next task from the front of the queue
             Task currentTask = taskList.dequeue();
 
             if (currentTask.code == 'S') {
-                if (currentTask.description.equals("start")) {
-                    PCB.setProcessState("Start");
-                    clock.start();
-                    taskStack.push(currentTask);
-                    console.log(clock.getDurationTime() + " - Simulator program starting");
-                } else if (currentTask.description.equals("end")) {
-                    PCB.setProcessState("Exit");
-                    taskStack.pop();
-                    console.log(clock.getDurationTime() + " - Simulator program ending");
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
+                taskProcessor.simulator(currentTask);
             } else if (currentTask.code == 'A') {
-                if (currentTask.description.equals("start")) {
-                    processCount++;
-                    taskStack.push(currentTask);
-                    console.log(clock.getDurationTime() + " - OS: preparing process " + processCount);
-                    //should prepare process here
-                    console.log(clock.getDurationTime() + " - OS: starting process " + processCount);
-                    PCB.setProcessState("Ready");
-                } else if (currentTask.description.equals("end")) {
-                    taskStack.pop();
-                    //should remove process here
-                    console.log(clock.getDurationTime() + " - OS: removing process " + processCount);
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
+                taskProcessor.application(currentTask);
             } else if (currentTask.code == 'P') {
-                PCB.setProcessState("Running");
-                if (currentTask.description.equals("run")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start processing action");
-                    //should process action here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end processing action");
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
-                PCB.setProcessState("Waiting");
+                taskProcessor.program(currentTask);
             } else if (currentTask.code == 'M') {
-                PCB.setProcessState("Running");
-                if (currentTask.description.equals("allocate")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": allocating memory");
-                    //sholuld allocate memory here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": memory allocated at " + stringHelper.makeFakeHex());
-                } else if (currentTask.description.equals("block")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start memory blocking");
-                    //should do memory blocking here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end memory blocking");
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
-                PCB.setProcessState("Waiting");
+                taskProcessor.memory(currentTask);
             } else if (currentTask.code == 'O') {
-                PCB.setProcessState("Running");
-                if (currentTask.description.equals("monitor")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start monitor output");
-                    //should do monitor output thread here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end monitor output");
-                } else if (currentTask.description.equals("projector")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start projector output");
-                    //should do projector output thread here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end projector output");
-                } else if (currentTask.description.equals("hard drive")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive output");
-                    //should do hard drive output thread here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive output");
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
-                PCB.setProcessState("Waiting");
+                taskProcessor.output(currentTask);
             } else if (currentTask.code == 'I') {
-                PCB.setProcessState("Running");
-                if (currentTask.description.equals("keyboard")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start keyboard input");
-                    //should do keyboard input thread here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end keyboard input");
-                } else if (currentTask.description.equals("hard drive")) {
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": start hard drive input");
-                    //should do hard drive input thread here
-                    clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
-                    console.log(clock.getDurationTime() + " - Process " + processCount + ": end hard drive input");
-                } else {
-                    console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                }
-                PCB.setProcessState("Waiting");
+                taskProcessor.input(currentTask);
             }
         }
 
@@ -164,6 +83,135 @@ public class sim2 {
     /////////////////////////////////////////////////////
     //                 HELPER CLASSES                  //
     /////////////////////////////////////////////////////
+    ///////////////////
+    // TaskProcessor:
+    ///////////////////
+    public static class TaskProcessor {
+        static int processCount = 0;
+
+        public static void simulator(Task currentTask) {
+            if (currentTask.description.equals("start")) {
+                PCB.setProcessState("Start");
+                clock.start();
+                taskStack.push(currentTask);
+                outputMessage("program starting", "simulator");
+            } else if (currentTask.description.equals("end")) {
+                PCB.setProcessState("Exit");
+                taskStack.pop();
+                outputMessage("program ending", "simulator");
+            } else {
+                invalidDescription(currentTask);
+            }
+        }
+
+        public static void application(Task currentTask) {
+            if (currentTask.description.equals("start")) {
+                processCount++;
+                taskStack.push(currentTask);
+                outputMessage("preparing process", "os");
+                //should prepare process here
+                outputMessage("starting process", "os");
+                PCB.setProcessState("Ready");
+            } else if (currentTask.description.equals("end")) {
+                taskStack.pop();
+                //should remove process here
+                outputMessage("removing process", "os");
+            } else {
+                invalidDescription(currentTask);
+            }
+        }
+
+        public static void program(Task currentTask) {
+            PCB.setProcessState("Running");
+            if (currentTask.description.equals("run")) {
+                outputMessage("start processing action", "process");
+                //should process action here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end processing action", "process");
+            } else {
+                invalidDescription(currentTask);
+            }
+            PCB.setProcessState("Waiting");
+        }
+
+        public static void memory(Task currentTask) {
+            PCB.setProcessState("Running");
+            if (currentTask.description.equals("allocate")) {
+                outputMessage("allocating memory", "process");
+                //sholuld allocate memory here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("memory allocated at " + stringHelper.makeFakeHex(), "process");
+            } else if (currentTask.description.equals("block")) {
+                outputMessage("start memory blocking", "process");
+                //should do memory blocking here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end memory blocking", "process");
+            } else {
+                invalidDescription(currentTask);
+            }
+            PCB.setProcessState("Waiting");
+        }
+
+        public static void output(Task currentTask) {
+            PCB.setProcessState("Running");
+            if (currentTask.description.equals("monitor")) {
+                outputMessage("start monitor output", "process");
+                //should do monitor output thread here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end monitor output", "process");
+            } else if (currentTask.description.equals("projector")) {
+                outputMessage("start projector output", "process");
+                //should do projector output thread here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end projector output", "process");
+            } else if (currentTask.description.equals("hard drive")) {
+                outputMessage("start hard drive output", "process");
+                //should do hard drive output thread here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end hard drive output", "process");
+            } else {
+                invalidDescription(currentTask);
+            }
+            PCB.setProcessState("Waiting");
+        }
+
+        public static void input(Task currentTask) {
+            PCB.setProcessState("Running");
+            if (currentTask.description.equals("keyboard")) {
+                outputMessage("start keyboard input", "process");
+                //should do keyboard input thread here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end keyboard input", "process");
+            } else if (currentTask.description.equals("hard drive")) {
+                outputMessage("start hard drive input", "process");
+                //should do hard drive input thread here
+                clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+                outputMessage("end hard drive input", "process");
+            } else {
+                invalidDescription(currentTask);
+            }
+            PCB.setProcessState("Waiting");
+        }
+
+        public static void outputMessage(String message, String messageType) {
+            String finalMessage = "";
+
+            if (messageType.equals("simulator")) {
+                finalMessage = "Simulator " + message;
+            } else if (messageType.equals("os")) {
+                finalMessage = "OS: " + message + " " + processCount;
+            } else if (messageType.equals("process")) {
+                finalMessage = "Process " + processCount + ": " + message;
+            }
+
+            console.log(clock.getDurationTime() + " - " + finalMessage);
+        }
+
+        public static void invalidDescription(Task currentTask) {
+            console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
+        }
+    }
+
     ///////////////////
     // Clock:
     ///////////////////
