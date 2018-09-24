@@ -1,10 +1,10 @@
 ///////////////////
-// PCB:
+// PCB: Process control block class used to determine process state
 ///////////////////
 public class PCB extends OS {
     int processState = 0; //review setProcessState for integer values
 
-    //setProcessState -
+    //setProcessState - sets the process state by inputting either valid string or integer value
     public <Generic> void setProcessState(Generic inputProcessState) {
         if (inputProcessState instanceof String) {
             int processStateIndex = stringHelper.findTokenIndexInArray(validKeys.processStateDeclarations, inputProcessState.toString());
@@ -19,12 +19,12 @@ public class PCB extends OS {
         }
     }
 
-    //getProcessStateInt -
+    //getProcessStateInt - returns the current process state in int format
     public int getProcessStateInt() {
         return processState;
     }
 
-    //getProcessStateString -
+    //getProcessStateString - returns the current process state in string format
     public String getProcessStateString() {
         return validKeys.processStateDeclarations[processState];
     }

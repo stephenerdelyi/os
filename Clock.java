@@ -1,24 +1,38 @@
-import java.text.DecimalFormat; //Clock
+import java.text.DecimalFormat;
 
 ///////////////////
-// Clock:
+// Clock: Class that contains all functionality related to timer and clock
 ///////////////////
 public class Clock extends OS {
     long startTime;
+    boolean isStarted = false;
 
+    //start - starts the clock by setting our start time
     public void start() {
         startTime = getTime();
+        isStarted = true;
     }
 
-    public long getTime() {
+    public void stop() {
+        startTime = 0;
+        isStarted = false;
+    }
+
+    //getTime - returns the current time for start and timer
+    private long getTime() {
         return System.nanoTime();
     }
 
+    //getDurationTime - output the difference in time (in sec) from clock start time
     public String getDurationTime() {
         double val = (System.nanoTime() - startTime) * .000000001;
         DecimalFormat df = new DecimalFormat("#.######");
         String formattedString = df.format(val);
         String[] splitString = stringHelper.splitOnDelimeter(formattedString, "\\.");
+
+        if (!isStarted) {
+            console.error("Attempting to get clock duration time while clock is stopped.");
+        }
 
         if (splitString[1].length() < 6) {
             int runFor = 6 - splitString[1].length();
@@ -30,6 +44,7 @@ public class Clock extends OS {
         return formattedString;
     }
 
+    //timer - function that will wait for waitTimeInMs
     public void timer(long waitTimeInMs) {
         long waitTimeInNs = waitTimeInMs * 3225310;
         //long waitTimeInNs = waitTimeInMs * 1000000;

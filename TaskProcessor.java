@@ -1,9 +1,10 @@
 ///////////////////
-// TaskProcessor:
+// TaskProcessor: Class that holds all functions called by execute in main. Also contains semantic task checker
 ///////////////////
 public class TaskProcessor extends OS {
-    int processCount = 0;
+    int processCount = 0; //number of processes executed since simulator start
 
+    //simulator - if a task code is simulator [S], pass the task to this function
     public void simulator(Task currentTask) {
         if (currentTask.description.equals("start")) {
             PCB.setProcessState("Start");
@@ -17,6 +18,7 @@ public class TaskProcessor extends OS {
         }
     }
 
+    //application - if a task code is application [A], pass the task to this function
     public void application(Task currentTask) {
         if (currentTask.description.equals("start")) {
             processCount++;
@@ -32,6 +34,7 @@ public class TaskProcessor extends OS {
         }
     }
 
+    //program - if a task code is program [P], pass the task to this function
     public void program(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("run")) {
@@ -43,6 +46,7 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Waiting");
     }
 
+    //memory - if a task code is memory [M], pass the task to this function
     public void memory(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("allocate")) {
@@ -59,6 +63,7 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Waiting");
     }
 
+    //output - if a task code is output [O], pass the task to this function
     public void output(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("monitor")) {
@@ -80,6 +85,7 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Waiting");
     }
 
+    //input - if a task code is input [I], pass the task to this function
     public void input(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("keyboard")) {
@@ -96,6 +102,7 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Waiting");
     }
 
+    //outputMessage - used throughout task processing to output log statements cleaner
     public void outputMessage(String message, String messageType) {
         String finalMessage = "";
 
@@ -110,15 +117,17 @@ public class TaskProcessor extends OS {
         console.log(clock.getDurationTime() + " - " + finalMessage);
     }
 
+    //verifyTaskData - verifies the semantics of the input data
     public boolean verifyTaskData() {
-        TaskQueue workingTaskList = taskList;
-        TaskStack simOSStack = new TaskStack();
+        TaskStackQueue workingTaskList = taskQueue;
+        TaskStackQueue SAStack = new TaskStackQueue("stack");
 
+        //check combinations of keywords and numbers
         for (int i = 0; i < workingTaskList.numCreated; i++) {
             Task currentTask = workingTaskList.dataArray[i];
 
             if (currentTask.code == 'S' || currentTask.code == 'A') {
-                simOSStack.push(currentTask);
+                SAStack.push(currentTask);
 
                 if (currentTask.numCycles > 0) {
                     console.error("Can not have code '" + currentTask.code + "' with numCycles > 0");
@@ -151,60 +160,36 @@ public class TaskProcessor extends OS {
 
         int numStartAsEncountered = 0;
         int numEndAsEncountered = 0;
-        int numStartS = 0;
-        int numEndS = 0;
-
-        simOSStack.print();
-
-        //check number of S entries
-        for (int i = 0; i < simOSStack.numCreated; i++) {
-            Task currentTask = simOSStack.dataArray[i];
-
-            if (currentTask.code == 'S' && currentTask.description.equals("start")) {
-                numStartS++;
-            } else if (currentTask.code == 'S' && currentTask.description.equals("end")) {
-                numEndS++;
-            }
-
-            if (numStartS > 1 || numEndS > 1) {
-                console.error("Tasks can not have nested 'S' codes of any type");
-            }
-        }
-
-        TaskStack dupStack = new TaskStack();
-        console.log("print:");
-        dupStack.print();
 
         //check S/A placement
-        for (int i = 0; i < simOSStack.numCreated; i++) {
-            Task currentTask = simOSStack.dataArray[i];
+        for (int i = 0; i < SAStack.numCreated; i++) {
+            Task currentTask = SAStack.dataArray[i];
             if (i == 0) {
                 if (currentTask.code != 'S' || !currentTask.description.equals("start")) {
                     console.error("Program does not start with S{start}0");
                 }
-            } else if (i == simOSStack.numCreated - 1) {
+            } else if (i == SAStack.numCreated - 1) {
                 if (currentTask.code != 'S' || !currentTask.description.equals("end")) {
                     console.error("Program does not end with S{end}0");
                 }
             } else {
-                Task nextTask = simOSStack.dataArray[i + 1];
-                console.log("i = " + i);
+                Task nextTask = SAStack.dataArray[i + 1];
                 if (currentTask.code == 'A') {
-                    if (currentTask.description.equals("start")) {
-                        numStartAsEncountered++;
-                        if (nextTask.code != 'A' || !nextTask.description.equals("end")) {
-                            /*if (nextTask.code == 'A') {
-                                numStartAsEncountered++;
-                            }*/
-                            console.error(stringHelper.returnOrdinal(numStartAsEncountered) + " instance of A{start}0 is missing following A{end}0 statment");
+                    if (i % 2 != 0) {
+                        if (currentTask.description.equals("end")) {
+                            numEndAsEncountered++;
+                            console.error(stringHelper.returnOrdinal(numEndAsEncountered) + " A{end}0 is missing preceding A{start}0");
+                        } else {
+                            numStartAsEncountered++;
+                            if (nextTask.description.equals("start") || nextTask.code == 'S') {
+                                console.error(stringHelper.returnOrdinal(numStartAsEncountered) + " A{start}0 is missing following A{end}0");
+                            }
                         }
-                    } else if (currentTask.description.equals("end")) {
-                        numEndAsEncountered++;
-                        if ((nextTask.code != 'A' || !nextTask.description.equals("start")) && (nextTask.code != 'S' || !nextTask.description.equals("end"))) {
-                            /*if (nextTask.code == 'A' && nextTask.description.equals("end")) {
-                                numEndAsEncountered++;
-                            }*/
-                            console.error(stringHelper.returnOrdinal(numEndAsEncountered) + " instance of A{end}0 is missing preceding A{start}0 statment");
+                    } else {
+                        if (currentTask.description.equals("end")) {
+                            numEndAsEncountered++;
+                        } else {
+                            numStartAsEncountered++;
                         }
                     }
                 } else if (currentTask.code == 'S') {

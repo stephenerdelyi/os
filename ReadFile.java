@@ -1,8 +1,7 @@
-import java.io.BufferedReader; //WriteFile, ReadFile, FileHandler http://www.avajava.com/tutorials/lessons/how-do-i-read-a-string-from-a-file-line-by-line.html
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
-
 
 ///////////////////
 // ReadFile: file reader used to read input and config file content

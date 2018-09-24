@@ -3,8 +3,8 @@
 ///////////////////
 public class OS {
     static boolean allowFatalExecution = false;
-    static TaskQueue taskList = new TaskQueue();
-    static TaskStack taskStack = new TaskStack();
+    static TaskStackQueue taskQueue = new TaskStackQueue("queue");
+    static TaskStackQueue taskStack = new TaskStackQueue("stack");
     static TaskProcessor taskProcessor = new TaskProcessor();
     static FileHandler fileHandler = new FileHandler();
     static Console console = new Console();
@@ -38,7 +38,7 @@ public class OS {
         /////////////////////////////////////////////////////
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
-        //execute();
+        execute();
 
         console.printNewline();
     }
@@ -46,9 +46,9 @@ public class OS {
     //execute - processes all tasks in the queue according to the current OS specifications
     public static void execute() {
         //while there are tasks to complete
-        while (!taskList.isEmpty()) {
+        while (!taskQueue.isEmpty()) {
             //remove the next task from the front of the queue
-            Task currentTask = taskList.dequeue();
+            Task currentTask = taskQueue.dequeue();
 
             if (currentTask.code == 'S') {
                 taskProcessor.simulator(currentTask);

@@ -15,8 +15,7 @@ CLASSES = \
 		ValidKeys.java\
 		Task.java\
 		ConfigFile.java\
-		TaskStack.java\
-		TaskQueue.java\
+		TaskStackQueue.java\
 		FileHandler.java\
 		PCB.java\
 		Clock.java\

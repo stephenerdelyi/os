@@ -1,4 +1,4 @@
-import java.util.Random; //StringHelper.makeFakeHex
+import java.util.Random;
 import java.io.File;
 
 ///////////////////

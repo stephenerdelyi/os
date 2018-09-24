@@ -1,4 +1,4 @@
-import java.util.Map; //FileHandler.verifyInputFile & FileHandler.verifyConfigFile
+import java.util.Map;
 import java.util.HashMap;
 
 ///////////////////
@@ -19,7 +19,7 @@ public class ConfigFile extends OS {
         if (configFileName != "" && configFileName != null) {
             fileName = configFileName;
         } else {
-            console.log("Config file is not named", true);
+            console.error("Config file is not named");
         }
     }
 

@@ -221,7 +221,7 @@ public class FileHandler extends OS {
                     newTask.numCycles = numCycles;
                     newTask.description = descriptor;
                     //add the temp task to the task list
-                    taskList.enqueue(newTask);
+                    taskQueue.enqueue(newTask);
                 }
             }
         }

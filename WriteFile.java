@@ -1,4 +1,4 @@
-import java.io.BufferedWriter; //WriteFile, ReadFile, FileHandler http://www.avajava.com/tutorials/lessons/how-do-i-read-a-string-from-a-file-line-by-line.html
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
