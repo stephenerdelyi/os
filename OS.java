@@ -3,9 +3,8 @@
 ///////////////////
 public class OS {
     static boolean allowFatalExecution = false;
-    static TaskStackQueue taskQueue = new TaskStackQueue("queue");
-    static TaskStackQueue taskStack = new TaskStackQueue("stack");
     static TaskProcessor taskProcessor = new TaskProcessor();
+    static TaskStackQueue taskQueue = new TaskStackQueue("queue");
     static FileHandler fileHandler = new FileHandler();
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();

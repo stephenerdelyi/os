@@ -19,7 +19,8 @@ CLASSES = \
 		FileHandler.java\
 		PCB.java\
 		Clock.java\
-		TaskProcessor.java
+		TaskProcessor.java\
+		OSThread.java
 
 default: classes
 
@@ -27,6 +28,7 @@ classes: $(CLASSES:.java=.class)
 		clear
 		@echo "✓ OS Compiled - Executable Now Available [$(MAIN)]"
 		@echo "✓ OS Executed - Operating System will Initialize"
+		@($(JC) $(MAIN).java)
 		@($(JRUNNER) $(MAIN) $(CONFIG))
 
 norun: $(CLASSES:.java=.class)

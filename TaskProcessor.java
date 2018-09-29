@@ -3,6 +3,7 @@
 ///////////////////
 public class TaskProcessor extends OS {
     int processCount = 0; //number of processes executed since simulator start
+    TaskStackQueue taskStack = new TaskStackQueue("stack");
 
     //simulator - if a task code is simulator [S], pass the task to this function
     public void simulator(Task currentTask) {
@@ -40,7 +41,7 @@ public class TaskProcessor extends OS {
         if (currentTask.description.equals("run")) {
             outputMessage("start processing action", "process");
             //should process action here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            clock.timer(computeTaskTime(currentTask));
             outputMessage("end processing action", "process");
         }
         PCB.setProcessState("Waiting");
@@ -52,12 +53,12 @@ public class TaskProcessor extends OS {
         if (currentTask.description.equals("allocate")) {
             outputMessage("allocating memory", "process");
             //sholuld allocate memory here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            clock.timer(computeTaskTime(currentTask));
             outputMessage("memory allocated at " + stringHelper.makeFakeHex(), "process");
         } else if (currentTask.description.equals("block")) {
             outputMessage("start memory blocking", "process");
             //should do memory blocking here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            clock.timer(computeTaskTime(currentTask));
             outputMessage("end memory blocking", "process");
         }
         PCB.setProcessState("Waiting");
@@ -68,18 +69,30 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("monitor")) {
             outputMessage("start monitor output", "process");
-            //should do monitor output thread here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            //monitor output thread here
+            OSThread monitorOutputThread = new OSThread(computeTaskTime(currentTask));
+            monitorOutputThread.start();
+            while(monitorOutputThread.isRunning()) {
+                //do nothing, since we are simulating time waiting
+            }
             outputMessage("end monitor output", "process");
         } else if (currentTask.description.equals("projector")) {
             outputMessage("start projector output", "process");
-            //should do projector output thread here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            //projector output thread here
+            OSThread projectorOutputThread = new OSThread(computeTaskTime(currentTask));
+            projectorOutputThread.start();
+            while(projectorOutputThread.isRunning()) {
+                //do nothing, since we are simulating time waiting
+            }
             outputMessage("end projector output", "process");
         } else if (currentTask.description.equals("hard drive")) {
             outputMessage("start hard drive output", "process");
-            //should do hard drive output thread here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            //hard drive output thread here
+            OSThread hardDriveOutputThread = new OSThread(computeTaskTime(currentTask));
+            hardDriveOutputThread.start();
+            while(hardDriveOutputThread.isRunning()) {
+                //do nothing, since we are simulating time waiting
+            }
             outputMessage("end hard drive output", "process");
         }
         PCB.setProcessState("Waiting");
@@ -90,13 +103,21 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("keyboard")) {
             outputMessage("start keyboard input", "process");
-            //should do keyboard input thread here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            //keyboard input thread here
+            OSThread keyboardInputThread = new OSThread(computeTaskTime(currentTask));
+            keyboardInputThread.start();
+            while(keyboardInputThread.isRunning()) {
+                //do nothing, since we are simulating time waiting
+            }
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
             outputMessage("start hard drive input", "process");
-            //should do hard drive input thread here
-            clock.timer(currentTask.numCycles * config.times.get(currentTask.description));
+            //hard drive input thread here
+            OSThread hardDriveInputThread = new OSThread(computeTaskTime(currentTask));
+            hardDriveInputThread.start();
+            while(hardDriveInputThread.isRunning()) {
+                //do nothing, since we are simulating time waiting
+            }
             outputMessage("end hard drive input", "process");
         }
         PCB.setProcessState("Waiting");
@@ -199,5 +220,9 @@ public class TaskProcessor extends OS {
         }
 
         return true;
+    }
+
+    public long computeTaskTime(Task inputTask) {
+        return inputTask.numCycles * config.times.get(inputTask.description);
     }
 }

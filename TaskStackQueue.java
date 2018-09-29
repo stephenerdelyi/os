@@ -45,7 +45,7 @@ public class TaskStackQueue extends OS {
             numCreated++;
             return true;
         } else {
-            console.error("Ran out of queue space - increase numAllowed");
+            console.error("Ran out of stack space - increase numAllowed");
         }
         //should never reach this return
         return false;
@@ -133,7 +133,6 @@ public class TaskStackQueue extends OS {
     //verifyDatatype - used in this class' functions that require stack/queue-specific actions
     private void verifyDatatype(String requiredDataType) {
         if (!requiredDataType.equals(classType)) {
-            console.log("goos");
             if (requiredDataType.equals("stack")) {
                 console.error("Trying to execute queue function in stack");
             } else if (requiredDataType.equals("queue")) {

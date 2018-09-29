@@ -46,7 +46,7 @@ public class Clock extends OS {
 
     //timer - function that will wait for waitTimeInMs
     public void timer(long waitTimeInMs) {
-        long waitTimeInNs = waitTimeInMs * 3225310;
+        long waitTimeInNs = waitTimeInMs * 3225310; //fix for inacurate times
         //long waitTimeInNs = waitTimeInMs * 1000000;
         long runUntil = getTime() + waitTimeInNs;
 
