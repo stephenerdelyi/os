@@ -5,4 +5,9 @@ public class Task extends OS {
     char code;
     String description;
     int numCycles;
+
+    //computedTaskTime - returns the computed task time in ms
+    public long computedTaskTime() {
+        return numCycles * config.times.get(description);
+    }
 }

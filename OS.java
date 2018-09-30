@@ -1,6 +1,7 @@
-///////////////////
-// OS: Operating system
-///////////////////
+//////////////////////////////////////////////////////
+//            OPERATING SYSTEM SIMULATOR            //
+//      Stephen Erdelyi Jr - CS 446 - Phase II      //
+//////////////////////////////////////////////////////
 public class OS {
     static boolean allowFatalExecution = false;
     static TaskProcessor taskProcessor = new TaskProcessor();
@@ -38,7 +39,6 @@ public class OS {
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
         execute();
-
         console.printNewline();
     }
 
@@ -49,6 +49,7 @@ public class OS {
             //remove the next task from the front of the queue
             Task currentTask = taskQueue.dequeue();
 
+            //send the task to the appropriate handler based on the task code
             if (currentTask.code == 'S') {
                 taskProcessor.simulator(currentTask);
             } else if (currentTask.code == 'A') {

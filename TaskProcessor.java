@@ -3,13 +3,13 @@
 ///////////////////
 public class TaskProcessor extends OS {
     int processCount = 0; //number of processes executed since simulator start
-    TaskStackQueue taskStack = new TaskStackQueue("stack");
+    TaskStackQueue taskStack = new TaskStackQueue("stack"); //the stack used to simulate stack-based process management
 
     //simulator - if a task code is simulator [S], pass the task to this function
     public void simulator(Task currentTask) {
         if (currentTask.description.equals("start")) {
             PCB.setProcessState("Start");
-            clock.start();
+            clock.start(); //set the simulator start time
             taskStack.push(currentTask);
             outputMessage("program starting", "simulator");
         } else if (currentTask.description.equals("end")) {
@@ -25,12 +25,12 @@ public class TaskProcessor extends OS {
             processCount++;
             taskStack.push(currentTask);
             outputMessage("preparing process", "os");
-            //should prepare process here
+            //should prepare process here in future OS iteration
             outputMessage("starting process", "os");
             PCB.setProcessState("Ready");
         } else if (currentTask.description.equals("end")) {
             taskStack.pop();
-            //should remove process here
+            //should remove process here in future OS iteration
             outputMessage("removing process", "os");
         }
     }
@@ -40,8 +40,8 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("run")) {
             outputMessage("start processing action", "process");
-            //should process action here
-            clock.timer(computeTaskTime(currentTask));
+            //should process action here in future OS iteration
+            clock.timer(currentTask.computedTaskTime()); //simulate wait time using the timer
             outputMessage("end processing action", "process");
         }
         PCB.setProcessState("Waiting");
@@ -52,13 +52,13 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("allocate")) {
             outputMessage("allocating memory", "process");
-            //sholuld allocate memory here
-            clock.timer(computeTaskTime(currentTask));
+            //sholuld allocate memory here in future OS iteration
+            clock.timer(currentTask.computedTaskTime()); //simulate wait time using the timer
             outputMessage("memory allocated at " + stringHelper.makeFakeHex(), "process");
         } else if (currentTask.description.equals("block")) {
             outputMessage("start memory blocking", "process");
-            //should do memory blocking here
-            clock.timer(computeTaskTime(currentTask));
+            //should do memory blocking here in future OS iteration
+            clock.timer(currentTask.computedTaskTime()); //simulate wait time using the timer
             outputMessage("end memory blocking", "process");
         }
         PCB.setProcessState("Waiting");
@@ -69,27 +69,27 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("monitor")) {
             outputMessage("start monitor output", "process");
-            //monitor output thread here
-            OSThread monitorOutputThread = new OSThread(computeTaskTime(currentTask));
-            monitorOutputThread.start();
+            //monitor output thread creation
+            OSThread monitorOutputThread = new OSThread();
+            monitorOutputThread.start(currentTask.computedTaskTime());
             while(monitorOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
             outputMessage("end monitor output", "process");
         } else if (currentTask.description.equals("projector")) {
             outputMessage("start projector output", "process");
-            //projector output thread here
-            OSThread projectorOutputThread = new OSThread(computeTaskTime(currentTask));
-            projectorOutputThread.start();
+            //projector output thread creation
+            OSThread projectorOutputThread = new OSThread();
+            projectorOutputThread.start(currentTask.computedTaskTime());
             while(projectorOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
             outputMessage("end projector output", "process");
         } else if (currentTask.description.equals("hard drive")) {
             outputMessage("start hard drive output", "process");
-            //hard drive output thread here
-            OSThread hardDriveOutputThread = new OSThread(computeTaskTime(currentTask));
-            hardDriveOutputThread.start();
+            //hard drive output thread creation
+            OSThread hardDriveOutputThread = new OSThread();
+            hardDriveOutputThread.start(currentTask.computedTaskTime());
             while(hardDriveOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
@@ -103,18 +103,18 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("keyboard")) {
             outputMessage("start keyboard input", "process");
-            //keyboard input thread here
-            OSThread keyboardInputThread = new OSThread(computeTaskTime(currentTask));
-            keyboardInputThread.start();
+            //keyboard input thread creation
+            OSThread keyboardInputThread = new OSThread();
+            keyboardInputThread.start(currentTask.computedTaskTime());
             while(keyboardInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
             outputMessage("start hard drive input", "process");
-            //hard drive input thread here
-            OSThread hardDriveInputThread = new OSThread(computeTaskTime(currentTask));
-            hardDriveInputThread.start();
+            //hard drive input thread creation
+            OSThread hardDriveInputThread = new OSThread();
+            hardDriveInputThread.start(currentTask.computedTaskTime());
             while(hardDriveInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
@@ -123,9 +123,9 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Waiting");
     }
 
-    //outputMessage - used throughout task processing to output log statements cleaner
+    //outputMessage - used throughout task processing to output log statements in a cleaner way
     public void outputMessage(String message, String messageType) {
-        String finalMessage = "";
+        String finalMessage = ""; //final message that will output behind the timestamp
 
         if (messageType.equals("simulator")) {
             finalMessage = "Simulator " + message;
@@ -140,12 +140,12 @@ public class TaskProcessor extends OS {
 
     //verifyTaskData - verifies the semantics of the input data
     public boolean verifyTaskData() {
-        TaskStackQueue workingTaskList = taskQueue;
-        TaskStackQueue SAStack = new TaskStackQueue("stack");
+        TaskStackQueue workingTaskQueue = taskQueue; //copy of the loaded taskQueue for working processing
+        TaskStackQueue SAStack = new TaskStackQueue("stack"); //stack that will be used to load/read combinations of S/A codes
 
         //check combinations of keywords and numbers
-        for (int i = 0; i < workingTaskList.numCreated; i++) {
-            Task currentTask = workingTaskList.dataArray[i];
+        for (int i = 0; i < workingTaskQueue.numCreated; i++) {
+            Task currentTask = workingTaskQueue.dataArray[i];
 
             if (currentTask.code == 'S' || currentTask.code == 'A') {
                 SAStack.push(currentTask);
@@ -179,8 +179,8 @@ public class TaskProcessor extends OS {
             }
         }
 
-        int numStartAsEncountered = 0;
-        int numEndAsEncountered = 0;
+        int numStartAsEncountered = 0; //number of tasks with code 'A' and description "Start" encountered as the loop occurred
+        int numEndAsEncountered = 0; //number of tasks with code 'A' and description "End" encountered as the loop occurred
 
         //check S/A placement
         for (int i = 0; i < SAStack.numCreated; i++) {
@@ -220,9 +220,5 @@ public class TaskProcessor extends OS {
         }
 
         return true;
-    }
-
-    public long computeTaskTime(Task inputTask) {
-        return inputTask.numCycles * config.times.get(inputTask.description);
     }
 }

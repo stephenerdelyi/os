@@ -17,6 +17,24 @@ public class TaskStackQueue extends OS {
         }
     }
 
+    //add - enqueue or push, depending on the structure type
+    public boolean add(Task newTask) {
+        if (classType.equals("queue")) {
+            if (enqueue(newTask)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (classType.equals("queue")) {
+            if (push(newTask)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
     //enqueue - takes the input task and adds it to the queue
     public boolean enqueue(Task newTask) {
         verifyDatatype("queue");
@@ -49,6 +67,18 @@ public class TaskStackQueue extends OS {
         }
         //should never reach this return
         return false;
+    }
+
+    //remove - dequeue or pop, depending on the structure type
+    public Task remove() {
+        if (classType.equals("queue")) {
+            return dequeue();
+        } else if (classType.equals("queue")) {
+            return pop();
+        } else {
+            Task nullTask = new Task();
+            return nullTask;
+        }
     }
 
     //dequeue - takes the task at the front of the queue and returns it

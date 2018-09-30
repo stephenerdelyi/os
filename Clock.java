@@ -4,8 +4,8 @@ import java.text.DecimalFormat;
 // Clock: Class that contains all functionality related to timer and clock
 ///////////////////
 public class Clock extends OS {
-    long startTime;
-    boolean isStarted = false;
+    long startTime; //holds the clock start time used for counting duration since start time
+    boolean isStarted = false; //holds the value of whether or not the clock is started
 
     //start - starts the clock by setting our start time
     public void start() {
@@ -13,7 +13,8 @@ public class Clock extends OS {
         isStarted = true;
     }
 
-    public void stop() {
+    //reset - resets the clock and sets it as not started
+    public void reset() {
         startTime = 0;
         isStarted = false;
     }
@@ -25,15 +26,18 @@ public class Clock extends OS {
 
     //getDurationTime - output the difference in time (in sec) from clock start time
     public String getDurationTime() {
+        //format the string exactly the same every time
         double val = (System.nanoTime() - startTime) * .000000001;
         DecimalFormat df = new DecimalFormat("#.######");
         String formattedString = df.format(val);
         String[] splitString = stringHelper.splitOnDelimeter(formattedString, "\\.");
 
+        //check to make sure the clock is started before returning the duration
         if (!isStarted) {
             console.error("Attempting to get clock duration time while clock is stopped.");
         }
 
+        //fix for decimal values that happen to end in 0 i.e.: 14.4290 to ensure they output with the 0(s)
         if (splitString[1].length() < 6) {
             int runFor = 6 - splitString[1].length();
             for (int i = 0; i < runFor; i++) {
