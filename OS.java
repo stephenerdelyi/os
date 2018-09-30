@@ -1,5 +1,5 @@
 ///////////////////
-// OS:
+// OS: Operating system
 ///////////////////
 public class OS {
     static boolean allowFatalExecution = false;
