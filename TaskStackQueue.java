@@ -22,14 +22,10 @@ public class TaskStackQueue extends OS {
         if (classType.equals("queue")) {
             if (enqueue(newTask)) {
                 return true;
-            } else {
-                return false;
             }
         } else if (classType.equals("queue")) {
             if (push(newTask)) {
                 return true;
-            } else {
-                return false;
             }
         }
         return false;
