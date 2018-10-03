@@ -1,0 +1,31 @@
+//////////////////////////////////////////////////////
+//            OPERATING SYSTEM SIMULATOR            //
+//      Stephen Erdelyi Jr - CS 446 - Phase II      //
+//////////////////////////////////////////////////////
+
+
+///////////////////
+// makefile instructions:
+///////////////////
+typing "make" will:
+    • compile all .java classes
+    • run the compiled program with a config file name of "config_1.conf"
+typing "make norun" will:
+    • compile all .java classes
+typing "java OS $CONFNAME" will:
+    • run the compiled program with a config file name of "$CONFNAME"
+
+
+///////////////////
+// git information:
+///////////////////
+Git repository is located at:
+    • https://github.com/stephenerdelyi/os
+Using git version:
+    • 2.13.0
+
+
+///////////////////
+// development information:
+///////////////////
+Created on macOS using javac and java (see makefile for make details)

@@ -18,12 +18,7 @@ class OSThread implements Runnable {
 
     //run - the threaded function that will run in parallel with the rest of the program
     public void run() {
-        try {
-            clock.timer(countTime);
-            Thread.sleep(0);
-        } catch (InterruptedException e) {
-            console.error("Thread interrupted: " + e);
-        }
+        clock.timer(countTime); //wait using the clock timer
     }
 
     //isRunning - returns whether or not the thread is currently running
