@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////
 //            OPERATING SYSTEM SIMULATOR            //
-//      Stephen Erdelyi Jr - CS 446 - Phase II      //
+//      Stephen Erdelyi Jr - CS 446 - Phase III     //
 //////////////////////////////////////////////////////
 public class OS {
     static boolean allowFatalExecution = false;
