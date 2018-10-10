@@ -131,6 +131,16 @@ public class FileHandler extends OS {
                     config.systemMemory = Integer.parseInt(splitByColon[1]) * 1000;
                 } else if (splitByColon[0].equals("System memory {Gbytes}")) {
                     config.systemMemory = Integer.parseInt(splitByColon[1]) * 1000000;
+                } else if (splitByColon[0].equals("Memory block size {kbytes}")) {
+                    config.blockSize = Integer.parseInt(splitByColon[1]);
+                } else if (splitByColon[0].equals("Memory block size {Mbytes}")) {
+                    config.blockSize = Integer.parseInt(splitByColon[1]) * 1000;
+                } else if (splitByColon[0].equals("Memory block size {Gbytes}")) {
+                    config.blockSize = Integer.parseInt(splitByColon[1]) * 1000000;
+                } else if (splitByColon[0].equals("Projector quantity")) {
+                    config.projectorQuantity = Integer.parseInt(splitByColon[1]);
+                } else if (splitByColon[0].equals("Hard drive quantity")) {
+                    config.hardDriveQuantity = Integer.parseInt(splitByColon[1]);
                 } else {
                     //should never reach this after verifying the file
                     console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");

@@ -7,12 +7,12 @@ public class TaskProcessor extends OS {
 
     //simulator - if a task code is simulator [S], pass the task to this function
     public void simulator(Task currentTask) {
-        if (currentTask.description.equals("start")) {
+        if (currentTask.description.equals("begin")) {
             PCB.setProcessState("Start");
             clock.start(); //set the simulator start time
             taskStack.push(currentTask);
             outputMessage("program starting", "simulator");
-        } else if (currentTask.description.equals("end")) {
+        } else if (currentTask.description.equals("finish")) {
             PCB.setProcessState("Exit");
             taskStack.pop();
             outputMessage("program ending", "simulator");
@@ -21,14 +21,14 @@ public class TaskProcessor extends OS {
 
     //application - if a task code is application [A], pass the task to this function
     public void application(Task currentTask) {
-        if (currentTask.description.equals("start")) {
+        if (currentTask.description.equals("begin")) {
             processCount++;
             taskStack.push(currentTask);
             outputMessage("preparing process", "os");
             //should prepare process here in future OS iteration
             outputMessage("starting process", "os");
             PCB.setProcessState("Ready");
-        } else if (currentTask.description.equals("end")) {
+        } else if (currentTask.description.equals("finish")) {
             taskStack.pop();
             //should remove process here in future OS iteration
             outputMessage("removing process", "os");
@@ -153,11 +153,11 @@ public class TaskProcessor extends OS {
                 if (currentTask.numCycles > 0) {
                     console.error("Can not have code '" + currentTask.code + "' with numCycles > 0");
                 }
-                if (!currentTask.description.equals("start") && !currentTask.description.equals("end")) {
+                if (!currentTask.description.equals("begin") && !currentTask.description.equals("finish")) {
                     console.error("Invalid description \"" + currentTask.description + "\" for code '" + currentTask.code + "'");
-                } else if (currentTask.description.equals("start")) {
+                } else if (currentTask.description.equals("begin")) {
                     //no actions
-                } else if (currentTask.description.equals("end")) {
+                } else if (currentTask.description.equals("finish")) {
                     //no actions
                 }
             } else if (currentTask.code == 'P') {
@@ -179,38 +179,38 @@ public class TaskProcessor extends OS {
             }
         }
 
-        int numStartAsEncountered = 0; //number of tasks with code 'A' and description "Start" encountered as the loop occurred
-        int numEndAsEncountered = 0; //number of tasks with code 'A' and description "End" encountered as the loop occurred
+        int numBeginAsEncountered = 0; //number of tasks with code 'A' and description "Start" encountered as the loop occurred
+        int numFinishAsEncountered = 0; //number of tasks with code 'A' and description "End" encountered as the loop occurred
 
         //check S/A placement
         for (int i = 0; i < SAStack.numCreated; i++) {
             Task currentTask = SAStack.dataArray[i];
             if (i == 0) {
-                if (currentTask.code != 'S' || !currentTask.description.equals("start")) {
-                    console.error("Program does not start with S{start}0");
+                if (currentTask.code != 'S' || !currentTask.description.equals("begin")) {
+                    console.error("Program does not start with S{begin}0");
                 }
             } else if (i == SAStack.numCreated - 1) {
-                if (currentTask.code != 'S' || !currentTask.description.equals("end")) {
-                    console.error("Program does not end with S{end}0");
+                if (currentTask.code != 'S' || !currentTask.description.equals("finish")) {
+                    console.error("Program does not end with S{finish}0");
                 }
             } else {
                 Task nextTask = SAStack.dataArray[i + 1];
                 if (currentTask.code == 'A') {
                     if (i % 2 != 0) {
-                        if (currentTask.description.equals("end")) {
-                            numEndAsEncountered++;
-                            console.error(stringHelper.returnOrdinal(numEndAsEncountered) + " A{end}0 is missing preceding A{start}0");
+                        if (currentTask.description.equals("finish")) {
+                            numFinishAsEncountered++;
+                            console.error(stringHelper.returnOrdinal(numFinishAsEncountered) + " A{finish}0 is missing preceding A{begin}0");
                         } else {
-                            numStartAsEncountered++;
-                            if (nextTask.description.equals("start") || nextTask.code == 'S') {
-                                console.error(stringHelper.returnOrdinal(numStartAsEncountered) + " A{start}0 is missing following A{end}0");
+                            numBeginAsEncountered++;
+                            if (nextTask.description.equals("begin") || nextTask.code == 'S') {
+                                console.error(stringHelper.returnOrdinal(numBeginAsEncountered) + " A{begin}0 is missing following A{finish}0");
                             }
                         }
                     } else {
-                        if (currentTask.description.equals("end")) {
-                            numEndAsEncountered++;
+                        if (currentTask.description.equals("finish")) {
+                            numFinishAsEncountered++;
                         } else {
-                            numStartAsEncountered++;
+                            numBeginAsEncountered++;
                         }
                     }
                 } else if (currentTask.code == 'S') {

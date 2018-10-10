@@ -8,6 +8,9 @@ public class ConfigFile extends OS {
     String fileName;
     double version;
     int systemMemory;
+    int blockSize;
+    int projectorQuantity;
+    int hardDriveQuantity;
     String inputFileName;
     String logOption;
     String logFileName;
