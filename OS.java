@@ -31,7 +31,7 @@ public class OS {
                 fileHandler.loadInputFile();
                 console.log("✓ Input file has been loaded [" + config.inputFileName + "]");
                 if (taskProcessor.verifyTaskData()) {
-                    console.log("✓ Input file has been verified with no semantic errors");
+                    console.log("✓ Input data has been verified with no semantic errors");
                 }
             }
         }

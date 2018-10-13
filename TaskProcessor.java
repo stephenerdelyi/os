@@ -78,22 +78,28 @@ public class TaskProcessor extends OS {
             }
             outputMessage("end monitor output", "process");
         } else if (currentTask.description.equals("projector")) {
-            outputMessage("start projector output", "process");
+            semaphores.projector.acquire();
+            int projectorNum = semaphores.projector.numPermitsInUse();
+            outputMessage("start projector output on PROJ " + projectorNum, "process");
             //projector output thread creation
             OSThread projectorOutputThread = new OSThread();
             projectorOutputThread.start(currentTask.computedTaskTime());
             while(projectorOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
+            semaphores.projector.release();
             outputMessage("end projector output", "process");
         } else if (currentTask.description.equals("hard drive")) {
-            outputMessage("start hard drive output", "process");
+            semaphores.hardDrive.acquire();
+            int hardDriveNum = semaphores.hardDrive.numPermitsInUse();
+            outputMessage("start hard drive output on HDD " + hardDriveNum, "process");
             //hard drive output thread creation
             OSThread hardDriveOutputThread = new OSThread();
             hardDriveOutputThread.start(currentTask.computedTaskTime());
             while(hardDriveOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
+            semaphores.hardDrive.release();
             outputMessage("end hard drive output", "process");
         }
         PCB.setProcessState("Waiting");
@@ -112,13 +118,16 @@ public class TaskProcessor extends OS {
             }
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
-            outputMessage("start hard drive input", "process");
+            semaphores.hardDrive.acquire();
+            int hardDriveNum = semaphores.hardDrive.numPermitsInUse();
+            outputMessage("start hard drive input on HDD " + hardDriveNum, "process");
             //hard drive input thread creation
             OSThread hardDriveInputThread = new OSThread();
             hardDriveInputThread.start(currentTask.computedTaskTime());
             while(hardDriveInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
+            semaphores.hardDrive.release();
             outputMessage("end hard drive input", "process");
         }
         PCB.setProcessState("Waiting");

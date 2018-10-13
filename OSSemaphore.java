@@ -9,9 +9,11 @@ public class OSSemaphore extends OS {
     private Semaphore semaphore = new Semaphore(0, true);
 
     public void init(int numPermits) {
-        numPermitsAllowed = numPermits;
-        semaphore.release(numPermitsAllowed);
-        isSet = true;
+        if (!isSet) {
+            numPermitsAllowed = numPermits;
+            semaphore.release(numPermitsAllowed);
+            isSet = true;
+        }
     }
 
     public boolean isSet() {
@@ -45,6 +47,6 @@ public class OSSemaphore extends OS {
 
     public int numPermitsInUse() {
         verifySet();
-        return (numPermitsAllowed - numAvailablePermits());
+        return (numPermitsAllowed - numAvailablePermits() - 1); //subtract 1 to get a 0th index
     }
 }

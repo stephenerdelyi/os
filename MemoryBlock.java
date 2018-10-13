@@ -17,7 +17,9 @@ public class MemoryBlock extends OS {
         if (numBytes <= (maxBlockSize - blockLocation)) {
             blockLocation += numBytes;
         } else {
-            console.error("Ran out of system memory. Please increase system memory in " + config.fileName + ".");
+            //reset blockLocation and start over
+            blockLocation = 0;
+            blockLocation += numBytes;
         }
     }
 
