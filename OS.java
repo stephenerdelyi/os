@@ -10,6 +10,7 @@ public class OS {
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
     static ValidKeys validKeys = new ValidKeys();
+    static Semaphores semaphores = new Semaphores();
     static PCB PCB = new PCB();
     static ConfigFile config;
     static Clock clock = new Clock();
@@ -38,29 +39,30 @@ public class OS {
         /////////////////////////////////////////////////////
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
-        execute();
+        //execute();
+        semaphores.test();
         console.printNewline();
     }
 
     //execute - processes all tasks in the queue according to the current OS specifications
     public static void execute() {
         //while there are tasks to complete
-        while (!taskQueue.isEmpty()) {
+        while(!taskQueue.isEmpty()) {
             //remove the next task from the front of the queue
             Task currentTask = taskQueue.dequeue();
 
             //send the task to the appropriate handler based on the task code
-            if (currentTask.code == 'S') {
+            if(currentTask.code == 'S') {
                 taskProcessor.simulator(currentTask);
-            } else if (currentTask.code == 'A') {
+            } else if(currentTask.code == 'A') {
                 taskProcessor.application(currentTask);
-            } else if (currentTask.code == 'P') {
+            } else if(currentTask.code == 'P') {
                 taskProcessor.program(currentTask);
-            } else if (currentTask.code == 'M') {
+            } else if(currentTask.code == 'M') {
                 taskProcessor.memory(currentTask);
-            } else if (currentTask.code == 'O') {
+            } else if(currentTask.code == 'O') {
                 taskProcessor.output(currentTask);
-            } else if (currentTask.code == 'I') {
+            } else if(currentTask.code == 'I') {
                 taskProcessor.input(currentTask);
             }
         }

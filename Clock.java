@@ -43,15 +43,22 @@ public class Clock extends OS {
             for (int i = 0; i < runFor; i++) {
                 splitString[1] = splitString[1] + "0"; //append a 0
             }
-            formattedString = splitString[0] + "." + splitString[1];
         }
+
+        //fix to make decimal value 01.4290 instead of 1.4290
+        if (splitString[0].length() <= 1) {
+            splitString[0] = "0" + splitString[0]; //prepend a 0
+        }
+
+        formattedString = splitString[0] + "." + splitString[1];
+        
         return formattedString;
     }
 
     //timer - function that will wait for waitTimeInMs
     public void timer(long waitTimeInMs) {
-        long waitTimeInNs = waitTimeInMs * 3225310; //fix for inacurate times
-        //long waitTimeInNs = waitTimeInMs * 1000000;
+        //long waitTimeInNs = waitTimeInMs * 3225310; //fix for inacurate times
+        long waitTimeInNs = waitTimeInMs * 1000000;
         long runUntil = getTime() + waitTimeInNs;
 
         while (getTime() < runUntil) {

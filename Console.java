@@ -57,6 +57,11 @@ public class Console extends OS {
         }
     }
 
+    //log - parameter override for single int printout
+    public void log(int echoStatement) {
+        log(Integer.toString(echoStatement), false);
+    }
+
     //log - parameter override for cleaner log statement outside class
     public void log(String echoStatement) {
         log(echoStatement, false);

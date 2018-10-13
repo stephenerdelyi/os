@@ -20,7 +20,9 @@ CLASSES = \
 		PCB.java\
 		Clock.java\
 		TaskProcessor.java\
-		OSThread.java
+		OSThread.java\
+		OSSemaphore.java\
+		Semaphores.java
 
 default: classes
 
