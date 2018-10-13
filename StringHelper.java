@@ -71,31 +71,4 @@ public class StringHelper extends OS {
 
         return inputString;
     }
-
-    public String makeFakeHex() {
-        String returnString = "0x";
-        Random rand = new Random();
-
-        for (int i = 0; i < 8; i++) {
-            int randomN = rand.nextInt(15);
-
-            if (randomN == 10) {
-                returnString = returnString + "A";
-            } else if (randomN == 11) {
-                returnString = returnString + "B";
-            } else if (randomN == 12) {
-                returnString = returnString + "C";
-            } else if (randomN == 13) {
-                returnString = returnString + "D";
-            } else if (randomN == 14) {
-                returnString = returnString + "E";
-            } else if (randomN == 15) {
-                returnString = returnString + "F";
-            } else {
-                returnString = returnString + Integer.toString(randomN);
-            }
-        }
-
-        return returnString;
-    }
 }

@@ -52,9 +52,10 @@ public class TaskProcessor extends OS {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("allocate")) {
             outputMessage("allocating memory", "process");
-            //sholuld allocate memory here in future OS iteration
+            String startHex = memoryBlock.getHex();
+            memoryBlock.allocate(currentTask.numCycles * config.blockSize);
             clock.timer(currentTask.computedTaskTime()); //simulate wait time using the timer
-            outputMessage("memory allocated at " + stringHelper.makeFakeHex(), "process");
+            outputMessage("memory allocated at " + startHex, "process");
         } else if (currentTask.description.equals("block")) {
             outputMessage("start memory blocking", "process");
             //should do memory blocking here in future OS iteration

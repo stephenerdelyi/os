@@ -22,7 +22,8 @@ CLASSES = \
 		TaskProcessor.java\
 		OSThread.java\
 		OSSemaphore.java\
-		Semaphores.java
+		Semaphores.java\
+		MemoryBlock.java
 
 default: classes
 

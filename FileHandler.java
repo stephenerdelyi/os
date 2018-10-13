@@ -150,6 +150,8 @@ public class FileHandler extends OS {
 
         //make the log file
         fileWriter.createFile(config.logFileName);
+        //set the max block size for the memory allocator
+        memoryBlock.setMaxBlockSize(config.systemMemory);
         //tell the user if there will be no further monitor/file output
         if (config.logOption.equals("Log to File")) {
             console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);

@@ -9,6 +9,7 @@ public class OS {
     static FileHandler fileHandler = new FileHandler();
     static Console console = new Console();
     static StringHelper stringHelper = new StringHelper();
+    static MemoryBlock memoryBlock = new MemoryBlock();
     static ValidKeys validKeys = new ValidKeys();
     static Semaphores semaphores = new Semaphores();
     static PCB PCB = new PCB();
@@ -39,8 +40,7 @@ public class OS {
         /////////////////////////////////////////////////////
         //                   SYSTEM READY                  //
         /////////////////////////////////////////////////////
-        //execute();
-        semaphores.test();
+        execute();
         console.printNewline();
     }
 
