@@ -11,7 +11,7 @@ public class OS {
     static StringHelper stringHelper = new StringHelper();
     static MemoryBlock memoryBlock = new MemoryBlock();
     static ValidKeys validKeys = new ValidKeys();
-    static Semaphores semaphores = new Semaphores();
+    static Locks locks = new Locks();
     static Clock clock = new Clock();
     static PCB PCB = new PCB();
     static ConfigFile config;

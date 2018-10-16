@@ -78,8 +78,8 @@ public class TaskProcessor extends OS {
             }
             outputMessage("end monitor output", "process");
         } else if (currentTask.description.equals("projector")) {
-            semaphores.projector.acquire();
-            int projectorNum = semaphores.projector.numPermitsInUse();
+            locks.projector.acquire();
+            int projectorNum = locks.projector.numPermitsInUse();
             outputMessage("start projector output on PROJ " + projectorNum, "process");
             //projector output thread creation
             OSThread projectorOutputThread = new OSThread();
@@ -87,11 +87,11 @@ public class TaskProcessor extends OS {
             while(projectorOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
-            semaphores.projector.release();
+            locks.projector.release();
             outputMessage("end projector output", "process");
         } else if (currentTask.description.equals("hard drive")) {
-            semaphores.hardDrive.acquire();
-            int hardDriveNum = semaphores.hardDrive.numPermitsInUse();
+            locks.hardDrive.acquire();
+            int hardDriveNum = locks.hardDrive.numPermitsInUse();
             outputMessage("start hard drive output on HDD " + hardDriveNum, "process");
             //hard drive output thread creation
             OSThread hardDriveOutputThread = new OSThread();
@@ -99,7 +99,7 @@ public class TaskProcessor extends OS {
             while(hardDriveOutputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
-            semaphores.hardDrive.release();
+            locks.hardDrive.release();
             outputMessage("end hard drive output", "process");
         }
         PCB.setProcessState("Waiting");
@@ -109,7 +109,7 @@ public class TaskProcessor extends OS {
     public void input(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("keyboard")) {
-            semaphores.keyboard.acquire();
+            locks.keyboard.lock();
             outputMessage("start keyboard input", "process");
             //keyboard input thread creation
             OSThread keyboardInputThread = new OSThread();
@@ -117,11 +117,11 @@ public class TaskProcessor extends OS {
             while(keyboardInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
-            semaphores.keyboard.release();
+            locks.keyboard.unlock();
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
-            semaphores.hardDrive.acquire();
-            int hardDriveNum = semaphores.hardDrive.numPermitsInUse();
+            locks.hardDrive.acquire();
+            int hardDriveNum = locks.hardDrive.numPermitsInUse();
             outputMessage("start hard drive input on HDD " + hardDriveNum, "process");
             //hard drive input thread creation
             OSThread hardDriveInputThread = new OSThread();
@@ -129,7 +129,7 @@ public class TaskProcessor extends OS {
             while(hardDriveInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
-            semaphores.hardDrive.release();
+            locks.hardDrive.release();
             outputMessage("end hard drive input", "process");
         }
         PCB.setProcessState("Waiting");

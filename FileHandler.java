@@ -153,9 +153,9 @@ public class FileHandler extends OS {
         //set the max block size for the memory allocator
         memoryBlock.setMaxBlockSize(config.systemMemory);
         //initialize the semaphore's number of available permits
-        semaphores.projector.init(config.projectorQuantity);
-        semaphores.hardDrive.init(config.hardDriveQuantity);
-        
+        locks.projector.init(config.projectorQuantity);
+        locks.hardDrive.init(config.hardDriveQuantity);
+
         //tell the user if there will be no further monitor/file output
         if (config.logOption.equals("Log to File")) {
             console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
