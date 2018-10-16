@@ -4,6 +4,8 @@
 public class MemoryBlock extends OS {
     private int blockLocation = 0; //the block's current cursor location
     private int maxBlockSize = 0; //the maximum size a block can be, set using setMaxBlockSize
+    private int numResets = 0; //the number of times the memory block has had to reset
+    private TaskStackQueue allocationBuffer = new TaskStackQueue("stack");
 
     //setMaxBlockSize - sets the max block size; can be increased but not decreased
     public void setMaxBlockSize(int inputMaxBlockSize) {
@@ -16,13 +18,22 @@ public class MemoryBlock extends OS {
 
     //allocate - allocates the given number of bytes to the memory block, if possible
     public void allocate(int numBytes) {
-        if (numBytes <= (maxBlockSize - blockLocation)) {
-            blockLocation += numBytes;
-        } else {
-            //reset blockLocation and start over
-            blockLocation = 0;
-            blockLocation += numBytes;
+        //if the number of bytes is larger than the maximum block size
+        if (numBytes > maxBlockSize) {
+            console.error("Trying to allocate a block larger than " + maxBlockSize + " bytes.");
         }
+        //if the number of bytes is larger than the available number of bytes
+        if (numBytes > (maxBlockSize - blockLocation)) {
+            blockLocation = 0;
+            allocationBuffer.erase();
+        }
+
+        //set the block "task" length
+        Task block = new Task();
+        block.length = numBytes;
+
+        blockLocation += numBytes;
+        allocationBuffer.add(block);
     }
 
     //getNumBytesAvailable - returns the number of bytes still available
@@ -41,5 +52,9 @@ public class MemoryBlock extends OS {
         returnHex = "0x" + returnHex;
 
         return returnHex;
+    }
+
+    public void printBlocks() {
+        
     }
 }

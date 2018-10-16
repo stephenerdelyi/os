@@ -2,10 +2,10 @@
 // TaskStackQueue: A queue OR stack (depending on constructor value) consisting of objects of type Task; contains all typical queue/stack functions
 ///////////////////
 public class TaskStackQueue extends OS {
-    String classType;
-    int numAllowed = 150;
-    int numCreated = 0;
-    Task[] dataArray = new Task[numAllowed];
+    private String classType;
+    private int numAllowed = 150;
+    public int numCreated = 0;
+    public Task[] dataArray = new Task[numAllowed];
 
     //TaskStackQueue (constructor) - requires that the data structure type is named to proceed
     TaskStackQueue(String inputClassType) {
@@ -22,7 +22,7 @@ public class TaskStackQueue extends OS {
             if (enqueue(newTask)) {
                 return true;
             }
-        } else if (classType.equals("queue")) {
+        } else if (classType.equals("stack")) {
             if (push(newTask)) {
                 return true;
             }
@@ -38,6 +38,7 @@ public class TaskStackQueue extends OS {
             dataArray[numCreated].code = newTask.code;
             dataArray[numCreated].description = newTask.description;
             dataArray[numCreated].numCycles = newTask.numCycles;
+            dataArray[numCreated].length = newTask.length;
             numCreated++;
             return true;
         } else {
@@ -55,6 +56,7 @@ public class TaskStackQueue extends OS {
             dataArray[numCreated].code = newTask.code;
             dataArray[numCreated].description = newTask.description;
             dataArray[numCreated].numCycles = newTask.numCycles;
+            dataArray[numCreated].length = newTask.length;
             numCreated++;
             return true;
         } else {
@@ -68,7 +70,7 @@ public class TaskStackQueue extends OS {
     public Task remove() {
         if (classType.equals("queue")) {
             return dequeue();
-        } else if (classType.equals("queue")) {
+        } else if (classType.equals("stack")) {
             return pop();
         } else {
             Task nullTask = new Task();
@@ -135,7 +137,8 @@ public class TaskStackQueue extends OS {
             char code = dataArray[i].code;
             String description = dataArray[i].description;
             int numCycles = dataArray[i].numCycles;
-            console.log("Task " + j + ": " + code + " - " + description + " - " + numCycles);
+            int length = dataArray[i].length;
+            console.log("Task " + j + ": " + code + " - " + description + " - " + numCycles + " - " + length);
         }
     }
 
@@ -163,6 +166,16 @@ public class TaskStackQueue extends OS {
             } else if (requiredDataType.equals("queue")) {
                 console.error("Trying to execute stack function in queue");
             }
+        }
+    }
+
+    //erase - deletes all data
+    public void erase() {
+        numCreated = 0;
+
+        for (int i = 0; i < dataArray.length; i++) {
+            numCreated = 0;
+            dataArray[i] = new Task();
         }
     }
 }
