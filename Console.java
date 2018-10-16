@@ -21,7 +21,7 @@ public class Console extends OS {
                 writeConsoleLog(echoStatement, isFatal);
             }
         } else {
-            //since config loaded yet, just output to console
+            //since config hasn't loaded yet, just output to console
             writeConsoleLog(echoStatement, isFatal);
         }
 
