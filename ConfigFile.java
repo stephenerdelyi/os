@@ -18,7 +18,6 @@ public class ConfigFile extends OS {
 
     //ConfigFile (constructor) - requires that the config file is named to proceed
     ConfigFile(String configFileName) {
-        super();
         if (configFileName != "" && configFileName != null) {
             fileName = configFileName;
         } else {

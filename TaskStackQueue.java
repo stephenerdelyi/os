@@ -9,7 +9,6 @@ public class TaskStackQueue extends OS {
 
     //TaskStackQueue (constructor) - requires that the data structure type is named to proceed
     TaskStackQueue(String inputClassType) {
-        super();
         if (inputClassType.equals("queue") || inputClassType.equals("stack")) {
             classType = inputClassType;
         } else {
