@@ -4,7 +4,7 @@ import java.util.concurrent.Semaphore;
 // OSMutex: Class that abstracts the typical mutex object to function a certain way in order to fulfill OS project requirements and needs
 ///////////////////
 public class OSMutex extends OS {
-    private Semaphore semaphore = new Semaphore(1, true); //the actual semaphore we are using to abstract
+    private Semaphore semaphore = new Semaphore(1, true); //the actual semaphore we are using to abstract the mutex
 
     //lock - acquires a single permit from the semaphore
     public void lock() {
