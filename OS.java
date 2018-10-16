@@ -4,13 +4,13 @@
 //////////////////////////////////////////////////////
 public class OS {
     static boolean allowFatalExecution = false;
+    static Console console = new Console();
+    static ValidKeys validKeys = new ValidKeys();
+    static StringHelper stringHelper = new StringHelper();
     static TaskProcessor taskProcessor = new TaskProcessor();
     static TaskStackQueue taskQueue = new TaskStackQueue("queue");
     static FileHandler fileHandler = new FileHandler();
-    static Console console = new Console();
-    static StringHelper stringHelper = new StringHelper();
     static MemoryBlock memoryBlock = new MemoryBlock();
-    static ValidKeys validKeys = new ValidKeys();
     static Locks locks = new Locks();
     static Clock clock = new Clock();
     static PCB PCB = new PCB();

@@ -160,7 +160,7 @@ public class FileHandler extends OS {
         if (config.logOption.equals("Log to File")) {
             console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
         } else if (config.logOption.equals("Log to Monitor")) {
-            console.writeFileLog("✓ Output from this point on will show only in the monitor window (log to monitor statement is in config file)", false);
+            console.writeFileLog("✓ Output will only show in the monitor window", false);
         }
     }
 

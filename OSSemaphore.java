@@ -23,11 +23,6 @@ public class OSSemaphore extends OS {
         }
     }
 
-    //isSet - returns whether or not the semaphore is set
-    private boolean isSet() {
-        return isSet;
-    }
-
     //verifySet - used internally by the class to verify a semaphore is initialized before completing actions on it
     private void verifySet() {
         if(!isSet) {
