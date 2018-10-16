@@ -6,17 +6,22 @@ public class Console extends OS {
 
     //log - contains all important logic for logging to the monitor, log file, or both
     public void log(String echoStatement, boolean isFatal) {
-        if (config.logOption != null) {
-            if (config.logOption.equals("Log to File")) {
-                writeFileLog(echoStatement, isFatal);
-            } else if (config.logOption.equals("Log to Monitor")) {
+        if (config != null) {
+            if (config.logOption != null) {
+                if (config.logOption.equals("Log to File")) {
+                    writeFileLog(echoStatement, isFatal);
+                } else if (config.logOption.equals("Log to Monitor")) {
+                    writeConsoleLog(echoStatement, isFatal);
+                } else if (config.logOption.equals("Log to Both")) {
+                    writeConsoleLog(echoStatement, isFatal);
+                    writeFileLog(echoStatement, isFatal);
+                }
+            } else {
+                //since config file name hasn't loaded yet, just output to console
                 writeConsoleLog(echoStatement, isFatal);
-            } else if (config.logOption.equals("Log to Both")) {
-                writeConsoleLog(echoStatement, isFatal);
-                writeFileLog(echoStatement, isFatal);
             }
         } else {
-            //since config file hasn't loaded yet, just output to console
+            //since config loaded yet, just output to console
             writeConsoleLog(echoStatement, isFatal);
         }
 
