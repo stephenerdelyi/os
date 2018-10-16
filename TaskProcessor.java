@@ -109,6 +109,7 @@ public class TaskProcessor extends OS {
     public void input(Task currentTask) {
         PCB.setProcessState("Running");
         if (currentTask.description.equals("keyboard")) {
+            semaphores.keyboard.acquire();
             outputMessage("start keyboard input", "process");
             //keyboard input thread creation
             OSThread keyboardInputThread = new OSThread();
@@ -116,6 +117,7 @@ public class TaskProcessor extends OS {
             while(keyboardInputThread.isRunning()) {
                 //do nothing, since we are simulating time waiting
             }
+            semaphores.keyboard.release();
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
             semaphores.hardDrive.acquire();

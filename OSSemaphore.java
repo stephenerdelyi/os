@@ -10,9 +10,13 @@ public class OSSemaphore extends OS {
 
     public void init(int numPermits) {
         if (!isSet) {
+            console.log("testA");
             numPermitsAllowed = numPermits;
             semaphore.release(numPermitsAllowed);
             isSet = true;
+        } else {
+            //console.log("testB");
+            console.error("Can not initialize semaphore more than once.");
         }
     }
 

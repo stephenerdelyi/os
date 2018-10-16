@@ -12,9 +12,9 @@ public class OS {
     static MemoryBlock memoryBlock = new MemoryBlock();
     static ValidKeys validKeys = new ValidKeys();
     static Semaphores semaphores = new Semaphores();
+    static Clock clock = new Clock();
     static PCB PCB = new PCB();
     static ConfigFile config;
-    static Clock clock = new Clock();
 
     public static void main(String[] args) {
         /////////////////////////////////////////////////////
