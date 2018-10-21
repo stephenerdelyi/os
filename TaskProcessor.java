@@ -53,7 +53,7 @@ public class TaskProcessor extends OS {
         if (currentTask.description.equals("allocate")) {
             outputMessage("allocating memory", "process");
             String startHex = memoryBlock.getHex();
-            memoryBlock.allocate(currentTask.numCycles * config.blockSize);
+            memoryBlock.allocate(config.blockSize);
             clock.timer(currentTask.computedTaskTime()); //simulate wait time using the timer
             outputMessage("memory allocated at " + startHex, "process");
         } else if (currentTask.description.equals("block")) {
@@ -79,7 +79,7 @@ public class TaskProcessor extends OS {
             outputMessage("end monitor output", "process");
         } else if (currentTask.description.equals("projector")) {
             locks.projector.acquire();
-            int projectorNum = locks.projector.numPermitsInUse();
+            int projectorNum = locks.projector.numCycle(); //update to numPermitsInUse for Phase IV
             outputMessage("start projector output on PROJ " + projectorNum, "process");
             //projector output thread creation
             OSThread projectorOutputThread = new OSThread();
@@ -91,7 +91,7 @@ public class TaskProcessor extends OS {
             outputMessage("end projector output", "process");
         } else if (currentTask.description.equals("hard drive")) {
             locks.hardDrive.acquire();
-            int hardDriveNum = locks.hardDrive.numPermitsInUse();
+            int hardDriveNum = locks.hardDrive.numCycle(); //update to numPermitsInUse for Phase IV
             outputMessage("start hard drive output on HDD " + hardDriveNum, "process");
             //hard drive output thread creation
             OSThread hardDriveOutputThread = new OSThread();
@@ -121,7 +121,7 @@ public class TaskProcessor extends OS {
             outputMessage("end keyboard input", "process");
         } else if (currentTask.description.equals("hard drive")) {
             locks.hardDrive.acquire();
-            int hardDriveNum = locks.hardDrive.numPermitsInUse();
+            int hardDriveNum = locks.hardDrive.numCycle(); //update to numPermitsInUse for Phase IV
             outputMessage("start hard drive input on HDD " + hardDriveNum, "process");
             //hard drive input thread creation
             OSThread hardDriveInputThread = new OSThread();

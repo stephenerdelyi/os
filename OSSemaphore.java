@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 public class OSSemaphore extends OS {
     private boolean isSet = false; //used to determine if init has been called already
     private int numPermitsAllowed = 0; //the number of permits allowed in the semaphore- can only be set once through init function
+    private int numCycle = -1; //the number of times the semaphore has been cycled through; member not needed for Phase IV
     private Semaphore semaphore = new Semaphore(0, true); //the actual semaphore we are using to abstract
 
     //init - used to initialize the semaphore by setting the number of permits allowed; function can only be run once
@@ -35,6 +36,7 @@ public class OSSemaphore extends OS {
         verifySet();
         try {
             semaphore.acquire();
+            numCycle++;
         } catch(InterruptedException ie) {
             console.error("Error acquiring semaphore.");
         }
@@ -50,6 +52,16 @@ public class OSSemaphore extends OS {
     public int numAvailablePermits() {
         verifySet();
         return semaphore.availablePermits();
+    }
+
+    //numCycle - returns the number of the cycle the semaphore is on (use numPermitsInUse fcn for Phase IV)
+    public int numCycle() {
+        verifySet();
+        if (numCycle >= numPermitsAllowed) {
+            numCycle = 0;
+        }
+
+        return numCycle;
     }
 
     //numPermitsInUse - returns the number of permits currently in use

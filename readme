@@ -3,6 +3,18 @@
 //      Stephen Erdelyi Jr - CS 446 - Phase III     //
 //////////////////////////////////////////////////////
 
+///////////////////
+// Phase III notes:
+///////////////////
+Location of semaphore class instantiation:
+    • Locks.java, lines 5 - 7
+Location of mutex lock class definition:
+    • OSMutex.java, entire file
+Location of semaphore class definition:
+    • OSSemaphore.java, entire file
+Location of semaphore and mutex use:
+    • TaskProcessor.java, entire file
+
 
 ///////////////////
 // makefile instructions:
