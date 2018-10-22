@@ -2,3 +2,5 @@
 *.lgf
 *.mdf
 *.conf
+*.zip
+.DS_Store

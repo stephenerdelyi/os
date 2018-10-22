@@ -24,6 +24,12 @@ typing "make" will:
     • run the compiled program with a config file name of "config_1.conf"
 typing "make norun" will:
     • compile all .java classes
+typing "make clean" will:
+    • remove all .lgf, .class, and .zip files
+typing "make export" will:
+    • create a .zip file of the project without .git, .mdf, .class, .zip, .lgf, or .conf files included
+typing "make commands" will:
+    • display all the makefile commands and their use cases
 typing "java OS $CONFNAME" will:
     • run the compiled program with a config file name of "$CONFNAME"
 
