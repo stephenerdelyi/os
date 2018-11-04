@@ -24,7 +24,7 @@ public class FileHandler extends OS {
             lineNum++;
             //if the current line is not a comment
             if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+                String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "[\\s]*:[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
                 int returnedIndex = stringHelper.findTokenIndexInArray(validKeys.configKeyDeclarations, splitByColon[0]); //the index of the token found in configKeyDeclarations (= -1 if not found in array)
 
                 //if the token is not invalid
@@ -71,6 +71,10 @@ public class FileHandler extends OS {
                         if (!splitByColon[1].equals("Log to Both") && !splitByColon[1].equals("Log to Monitor") && !splitByColon[1].equals("Log to File")) {
                             console.error("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + " (invalid option specified): \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
                         }
+                    } else if (validKeys.configTypeDeclarations[returnedIndex].equals("schedulingCode")) {
+                        if (!splitByColon[1].equals("FIFO") && !splitByColon[1].equals("PS") && !splitByColon[1].equals("SJF")) {
+                            console.error("There was an error parsing the log option provided in " + config.fileName + " on line " + lineNum + " (invalid option specified): \n  \"" + splitByColon[1] + "\" next to declaration \"" + splitByColon[0] + "\"");
+                        }
                     }
                 } else {
                     console.error("Invalid parameter declaration in " + config.fileName + " on line " + lineNum + ": \n  \"" + splitByColon[0] + "\"");
@@ -95,7 +99,7 @@ public class FileHandler extends OS {
         for (int i = 0; i < splitByLineBreak.length - 1; i++) {
             //if line is not a comment
             if (stringHelper.substringIsInString(splitByLineBreak[i], ":")) {
-                String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], ":[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
+                String[] splitByColon = stringHelper.splitOnDelimeter(splitByLineBreak[i], "[\\s]*:[\\s]*"); //array of 2 cells - 1st is the left hand side of a config line (key), 2nd is the right hand side of a config line (value)
 
                 //make begin and end count for 0 time
                 config.times.put("begin", 0);
@@ -141,6 +145,10 @@ public class FileHandler extends OS {
                     config.projectorQuantity = Integer.parseInt(splitByColon[1]);
                 } else if (splitByColon[0].equals("Hard drive quantity")) {
                     config.hardDriveQuantity = Integer.parseInt(splitByColon[1]);
+                } else if (splitByColon[0].equals("Processor Quantum Number")) {
+                    config.quantumNumber = Integer.parseInt(splitByColon[1]);
+                } else if (splitByColon[0].equals("CPU Scheduling Code")) {
+                    config.schedulingCode = splitByColon[1];
                 } else {
                     //should never reach this after verifying the file
                     console.error("Invalid parameter declaration in " + config.fileName + ": \n  \"" + splitByColon[0] + "\"");

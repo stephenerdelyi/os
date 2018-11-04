@@ -11,6 +11,8 @@ public class ConfigFile extends OS {
     int blockSize;
     int projectorQuantity;
     int hardDriveQuantity;
+    int quantumNumber;
+    String schedulingCode;
     String inputFileName;
     String logOption;
     String logFileName;
