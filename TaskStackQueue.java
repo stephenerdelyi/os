@@ -86,6 +86,9 @@ public class TaskStackQueue extends OS {
             for (int i = 1; i < numCreated; i++) {
                 dataArray[i - 1] = dataArray[i];
             }
+            if(isFull()) {
+                console.error("Ran out of queue space - increase numAllowed");
+            }
             dataArray[numCreated] = null;
             numCreated--;
             return returnTask;
@@ -100,6 +103,9 @@ public class TaskStackQueue extends OS {
         verifyDatatype("stack");
         if (!isEmpty()) {
             Task returnTask = dataArray[numCreated - 1];
+            if(isFull()) {
+                console.error("Ran out of stack space - increase numAllowed");
+            }
             dataArray[numCreated - 1] = null;
             numCreated--;
             return returnTask;
