@@ -233,4 +233,19 @@ public class TaskProcessor extends OS {
 
         return true;
     }
+
+    //scheduleTasks - schedules the tasks according to the algorithm selected in config
+    public boolean scheduleTasks() {
+        if (config.schedulingCode.equals("FIFO")) {
+            //data is already sorted in FIFO order - nothing to do
+            return true;
+        } else if (config.schedulingCode.equals("PS")) {
+            scheduler.PS();
+            return true;
+        } else if (config.schedulingCode.equals("SJF")) {
+            scheduler.SJF();
+            return true;
+        }
+        return false;
+    }
 }

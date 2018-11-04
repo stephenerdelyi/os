@@ -25,7 +25,8 @@ CLASSES = \
 		OSSemaphore.java\
 		OSMutex.java\
 		Locks.java\
-		MemoryBlock.java
+		MemoryBlock.java\
+		Scheduler.java
 
 default: classes
 

@@ -6,6 +6,7 @@ public class OS {
     static boolean allowFatalExecution = false;
     static Console console = new Console();
     static ValidKeys validKeys = new ValidKeys();
+    static Scheduler scheduler = new Scheduler();
     static StringHelper stringHelper = new StringHelper();
     static TaskProcessor taskProcessor = new TaskProcessor();
     static TaskStackQueue taskQueue = new TaskStackQueue("queue");
@@ -32,6 +33,9 @@ public class OS {
                 console.log("✓ Input file has been loaded [" + config.inputFileName + "]");
                 if (taskProcessor.verifyTaskData()) {
                     console.log("✓ Input data has been verified with no semantic errors");
+                    if (taskProcessor.scheduleTasks()) {
+                        console.log("✓ Input data has been scheduled using " + config.schedulingCode + " [" + scheduler.numSwapsOccurred + " swap(s)]");
+                    }
                 }
             }
         }
