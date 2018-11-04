@@ -5,32 +5,32 @@ public class Console extends OS {
     WriteFile fileWriter = new WriteFile();
 
     //log - contains all important logic for logging to the monitor, log file, or both
-    public void log(String echoStatement, boolean isFatal) {
+    public void log(String echoStatement, String route) {
         if (config != null) {
             if (config.logOption != null) {
                 if (config.logOption.equals("Log to File")) {
-                    writeFileLog(echoStatement, isFatal);
+                    writeFileLog(echoStatement, route);
                 } else if (config.logOption.equals("Log to Monitor")) {
-                    writeConsoleLog(echoStatement, isFatal);
+                    writeConsoleLog(echoStatement, route);
                 } else if (config.logOption.equals("Log to Both")) {
-                    writeConsoleLog(echoStatement, isFatal);
-                    writeFileLog(echoStatement, isFatal);
+                    writeConsoleLog(echoStatement, route);
+                    writeFileLog(echoStatement, route);
                 }
             } else {
                 //since config file name hasn't loaded yet, just output to console
-                writeConsoleLog(echoStatement, isFatal);
+                writeConsoleLog(echoStatement, route);
             }
         } else {
             //since config hasn't loaded yet, just output to console
-            writeConsoleLog(echoStatement, isFatal);
+            writeConsoleLog(echoStatement, route);
         }
 
         //after we write everything, if the log was fatal we should ask to crash
-        if (isFatal) {
+        if (route.equals("fatal")) {
             //if we allow fatal executions
             if (allowFatalExecution) {
                 //prompt the user to continue
-                console.writeConsoleLog("Continue execution? (Y/N)", false);
+                console.writeConsoleLog("Continue execution? (Y/N)", "log");
                 String name = System.console().readLine();
                 //if the user does not want to continue, then crash
                 if (!name.equals("y") && !name.equals("Y")) {
@@ -43,10 +43,14 @@ public class Console extends OS {
     }
 
     //writeConsoleLog - writes a log message to the monitor only
-    public void writeConsoleLog(String echoStatement, boolean isFatal) {
-        if (!isFatal) {
+    public void writeConsoleLog(String echoStatement, String route) {
+        if (route.equals("log")) {
             System.out.println((char)27 + "[39m" + echoStatement);
-        } else {
+        } else if (route.equals("warn")) {
+            System.out.println((char)27 + "[39m");
+            System.out.println((char)27 + "[36m" + "➤ WARNING: " + echoStatement);
+            System.out.println((char)27 + "[39m");
+        } else if (route.equals("fatal")) {
             System.out.println((char)27 + "[39m");
             System.out.println((char)27 + "[31m" + "✖ FATAL ERROR: " + echoStatement);
             System.out.println((char)27 + "[39m");
@@ -54,37 +58,44 @@ public class Console extends OS {
     }
 
     //writeFileLog - writes a log message to the log file only
-    public void writeFileLog(String echoStatement, boolean isFatal) {
-        if (!isFatal) {
+    public void writeFileLog(String echoStatement, String route) {
+        if (route.equals("log")) {
             fileWriter.write(config.logFileName, true, echoStatement);
-        } else {
+        } else if (route.equals("warn")) {
+            fileWriter.write(config.logFileName, true, "➤ WARNING: " + echoStatement);
+        } else if (route.equals("fatal")) {
             fileWriter.write(config.logFileName, true, "✖ FATAL ERROR: " + echoStatement);
         }
     }
 
     //log - parameter override for single int printout
     public void log(int echoStatement) {
-        log(Integer.toString(echoStatement), false);
+        log(Integer.toString(echoStatement), "log");
     }
 
     //log - parameter override for cleaner log statement outside class
     public void log(String echoStatement) {
-        log(echoStatement, false);
+        log(echoStatement, "log");
+    }
+
+    //warn - writes a log message with a warning color
+    public void warn(String echoStatement) {
+        log(echoStatement, "warn");
     }
 
     //error - writes a log message with isFatal set to true - will crash program
     public void error(String echoStatement) {
-        log(echoStatement, true);
+        log(echoStatement, "fatal");
     }
 
     //printDiv - prints a divider to the monitor or log file
     public void printDiv() {
-        log("=======================================================", false);
+        log("=======================================================", "log");
     }
 
     //printNewline - prints a new line to the monitor or log file
     public void printNewline() {
-        log(" ", false);
+        log(" ", "log");
     }
 
     //crash - crashes the program prematurely so that the files can not be processed after a syntax error is found

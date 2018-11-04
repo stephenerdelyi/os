@@ -166,9 +166,9 @@ public class FileHandler extends OS {
 
         //tell the user if there will be no further monitor/file output
         if (config.logOption.equals("Log to File")) {
-            console.writeConsoleLog("✓ Output from this point on will show only in the log file", false);
+            console.writeConsoleLog("✓ Output from this point on will show only in the log file", "log");
         } else if (config.logOption.equals("Log to Monitor")) {
-            console.writeFileLog("✓ Output will only show in the monitor window", false);
+            console.writeFileLog("✓ Output will only show in the monitor window", "log");
         }
     }
 
