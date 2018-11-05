@@ -79,6 +79,7 @@ public class Scheduler extends OS {
     private void partitionTaskQueue() {
         //partition the queue
         while(!taskQueue.isEmpty()) {
+            //remove task from taskQueue to place in current queueArray index
             Task currentTask = taskQueue.dequeue();
 
             if((currentTask.code == 'S' && currentTask.description.equals("begin")) || (currentTask.code == 'S' && currentTask.description.equals("finish")) || (currentTask.code == 'A' && currentTask.description.equals("begin"))) {
