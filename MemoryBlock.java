@@ -24,9 +24,7 @@ public class MemoryBlock extends OS {
         }
         //if the number of bytes is larger than the available number of bytes
         if (numBytes > (maxBlockSize - blockLocation)) {
-            blockLocation = 0;
-            numResets++;
-            allocationBuffer.erase();
+            empty();
         }
 
         //set the block "task" length
@@ -35,6 +33,13 @@ public class MemoryBlock extends OS {
 
         blockLocation += numBytes;
         allocationBuffer.add(block);
+    }
+
+    //empty - empties the bytes in the memory block
+    public void empty() {
+        blockLocation = 0;
+        numResets++;
+        allocationBuffer.erase();
     }
 
     //getNumBytesAvailable - returns the number of bytes still available

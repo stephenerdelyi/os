@@ -1,11 +1,11 @@
 ///////////////////
-// Scheduler:
+// Scheduler: The system scheduler that will re-organize the order of the input data based on the selected sorting algorithm
 ///////////////////
 public class Scheduler extends OS {
-    int partitionPosition = -1;
-    int numSwapsOccurred = 0;
-    int numPartitionsAllowed = 50;
-    TaskStackQueue[] queueArray = new TaskStackQueue[numPartitionsAllowed];
+    int partitionPosition = -1; //the current position of the queueArray index
+    int numSwapsOccurred = 0; //the number of partition swaps that have occurred while the algorithm ran
+    int numPartitionsAllowed = 50; //the number of partitions allowed for the scheduler
+    TaskStackQueue[] queueArray = new TaskStackQueue[numPartitionsAllowed]; //the array that holds TaskStackQueues in order to reorganize the TaskStackQueues
 
     //SJF - the Shortest Job First algorithm scheduling function
     public void SJF() {
@@ -13,8 +13,8 @@ public class Scheduler extends OS {
 
         //bubble sort the queue based off the number of processes
         for(int i = 1; i < partitionPosition; i++) {
-            for(int j = 1; j < partitionPosition-i; j++) {
-                if (queueArray[j].numCreated > queueArray[j+1].numCreated) {
+            for(int j = 1; j < partitionPosition - i; j++) {
+                if (queueArray[j].numCreated > queueArray[j + 1].numCreated) {
                     swap(j);
                 }
             }
@@ -29,7 +29,7 @@ public class Scheduler extends OS {
 
         //bubble sort the queue based off the number of I/O operations
         for(int i = 1; i < partitionPosition; i++) {
-            for(int j = 1; j < partitionPosition-i; j++) {
+            for(int j = 1; j < partitionPosition - i; j++) {
                 int numCurrentIO = 0;
                 int numNextIO = 0;
 
@@ -61,12 +61,12 @@ public class Scheduler extends OS {
     private void swap(int indexValue) {
         TaskStackQueue tempQueue = new TaskStackQueue("queue");
         tempQueue = queueArray[indexValue];
-        queueArray[indexValue] = queueArray[indexValue+1];
-        queueArray[indexValue+1] = tempQueue;
+        queueArray[indexValue] = queueArray[indexValue + 1];
+        queueArray[indexValue + 1] = tempQueue;
         numSwapsOccurred++;
     }
 
-    //reloadTaskQueue - load back on to the OS's taskQueue
+    //reloadTaskQueue - load queueArray back on to the OS's taskQueue
     private void reloadTaskQueue() {
         for(int i = 0; i <= partitionPosition; i++) {
             while(!queueArray[i].isEmpty()) {

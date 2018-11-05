@@ -30,6 +30,7 @@ public class TaskProcessor extends OS {
             PCB.setProcessState("Ready");
         } else if (currentTask.description.equals("finish")) {
             taskStack.pop();
+            memoryBlock.empty();
             //should remove process here in future OS iteration
             outputMessage("removing process", "os");
         }
