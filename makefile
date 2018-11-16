@@ -26,7 +26,9 @@ CLASSES = \
 		OSMutex.java\
 		Locks.java\
 		MemoryBlock.java\
-		Scheduler.java
+		Scheduler.java\
+		Definition.java\
+		Dictionary.java
 
 default: classes
 
