@@ -35,7 +35,6 @@ public class FileHandler extends OS {
                     } else {
                         //remove the token from the history array so that it can't be used twice
                         configTokenHistory[returnedIndex] = "0";
-                        dictionaries.config.markDefinitionRead(splitByColon[0]);
                     }
                     //if it is of type ______, try to parse it & verify the validity of the value
                     if (validKeys.configTypeDeclarations[returnedIndex].equals("double")) {
@@ -86,7 +85,7 @@ public class FileHandler extends OS {
         //make sure all the tokens were used
         for (int i = 0; i < configTokenHistory.length - 1; i++) {
             if (!configTokenHistory[i].equals("0")) {
-                console.warn("Missing parameter declaration in " + config.fileName + ": \n  \"" + configTokenHistory[i] + "\" - will use default value [default]");
+                console.error("Missing parameter declaration in " + config.fileName + ": \n  \"" + configTokenHistory[i] + "\"");
             }
         }
 

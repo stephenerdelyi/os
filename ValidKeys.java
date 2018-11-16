@@ -7,29 +7,4 @@ public class ValidKeys extends OS {
     String[] inputMetaCodeDeclarations = {"S","A","P","M","O","I"}; //string (easier than char) array that contains all valid input file meta code values
     String[] inputDescriptorDeclarations = {"run","begin","allocate","monitor","hard drive","scanner","projector","block","keyboard","finish"}; //string array that contains all valid input file description values
     String[] processStateDeclarations = {"Start", "Ready", "Running", "Waiting", "Exit"};
-    Dictionary config = new Dictionary();
-
-    ValidKeys() {
-        setupConfigDictionary();
-    }
-
-    private void setupConfigDictionary() {
-        Definition newDefintion = new Definition();
-        newDefintion.definition = "Version/Phase";
-        newDefintion.defaultValue = "0.0";
-        newDefintion.dataType = "double";
-        config.add(newDefintion);
-
-        newDefintion = new Definition();
-        newDefintion.definition = "File Path";
-        newDefintion.defaultValue = "Test_1a.mdf";
-        newDefintion.dataType = "fileName";
-        config.add(newDefintion);
-
-        newDefintion = new Definition();
-        newDefintion.definition = "Monitor display time {msec}";
-        newDefintion.defaultValue = "50";
-        newDefintion.dataType = "int";
-        config.add(newDefintion);
-    }
 }

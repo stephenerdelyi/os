@@ -6,7 +6,6 @@ public class OS {
     static boolean allowFatalExecution = false;
     static Console console = new Console();
     static ValidKeys validKeys = new ValidKeys();
-    static ValidKeys dictionaries = new ValidKeys();
     static Scheduler scheduler = new Scheduler();
     static StringHelper stringHelper = new StringHelper();
     static TaskProcessor taskProcessor = new TaskProcessor();
