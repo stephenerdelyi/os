@@ -4,12 +4,12 @@
 public class FileHandler extends OS {
     ReadFile fileReader = new ReadFile();
     WriteFile fileWriter = new WriteFile();
+    String[] configTokenHistory = new String[validKeys.configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
 
     //verifyConfigFile - verify the configuration file
     public boolean verifyConfigFile() {
         fileReader.read(config.fileName); //actually read the config file and store it in the class's string var
         String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
-        String[] configTokenHistory = new String[validKeys.configKeyDeclarations.length]; //string array that is used to determine if there are too many/few assignments of a given config declaration
         System.arraycopy(validKeys.configKeyDeclarations, 0, configTokenHistory, 0, validKeys.configKeyDeclarations.length); //make a second copy of configKeyDeclarations tocd configTokenHistory since we need two working arrays to accomplish error checking
         int lineNum = 0; //used for error logging
 
@@ -82,15 +82,16 @@ public class FileHandler extends OS {
             }
         }
 
-        //make sure all the tokens were used
-        for (int i = 0; i < configTokenHistory.length - 1; i++) {
-            if (!configTokenHistory[i].equals("0")) {
+        //make sure all the tokens that must be present were used
+        for (int i = 0; i < configTokenHistory.length; i++) {
+            if (!configTokenHistory[i].equals("0") && validKeys.configDefaultAllowed[i].equals("0")) {
                 console.error("Missing parameter declaration in " + config.fileName + ": \n  \"" + configTokenHistory[i] + "\"");
             }
         }
 
         return true;
     }
+
     //loadConfigFile - load the verified configuration file into the system
     public void loadConfigFile() {
         String[] splitByLineBreak = stringHelper.splitOnDelimeter(fileReader.lastReadFile, "\\\n"); //array of strings containing each line read in from the config file
@@ -156,6 +157,8 @@ public class FileHandler extends OS {
             }
         }
 
+        //set the default values of items missing in the config file
+        fillDefaultValues();
         //make the log file
         fileWriter.createFile(config.logFileName);
         //set the max block size for the memory allocator
@@ -246,6 +249,32 @@ public class FileHandler extends OS {
                     newTask.description = descriptor;
                     //add the temp task to the task list
                     taskQueue.enqueue(newTask);
+                }
+            }
+        }
+    }
+
+    //fillDefaultValues - fills the default values that are missing from the config file
+    public void fillDefaultValues() {
+        for (int i = 0; i < configTokenHistory.length; i++) {
+            if (!configTokenHistory[i].equals("0") && validKeys.configDefaultAllowed[i].equals("1")) {
+                console.warn("Config file did not supply " + configTokenHistory[i] + ".\n  OS will use default value: " + validKeys.configDefaultValueDeclarations[i]);
+
+                if (configTokenHistory[i].equals("Memory cycle time {msec}")) {
+                    config.times.put("allocate", Integer.parseInt(validKeys.configDefaultValueDeclarations[i]));
+                    config.times.put("block", Integer.parseInt(validKeys.configDefaultValueDeclarations[i]));
+                } else if (configTokenHistory[i].equals("System memory {kbytes}|System memory {Mbytes}|System memory {Gbytes}")) {
+                    config.systemMemory = Integer.parseInt(validKeys.configDefaultValueDeclarations[i]);
+                } else if (configTokenHistory[i].equals("Memory block size {kbytes}|Memory block size {Mbytes}|Memory block size {Gbytes}")) {
+                    config.blockSize = Integer.parseInt(validKeys.configDefaultValueDeclarations[i]);
+                } else if (configTokenHistory[i].equals("Projector quantity")) {
+                    config.projectorQuantity = Integer.parseInt(validKeys.configDefaultValueDeclarations[i]);
+                } else if (configTokenHistory[i].equals("Hard drive quantity")) {
+                    config.hardDriveQuantity = Integer.parseInt(validKeys.configDefaultValueDeclarations[i]);
+                } else if (configTokenHistory[i].equals("Processor Quantum Number")) {
+                    config.quantumNumber = Integer.parseInt(validKeys.configDefaultValueDeclarations[i]);
+                } else if (configTokenHistory[i].equals("CPU Scheduling Code")) {
+                    config.schedulingCode = validKeys.configDefaultValueDeclarations[i];
                 }
             }
         }
