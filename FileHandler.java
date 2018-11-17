@@ -242,6 +242,12 @@ public class FileHandler extends OS {
                     String descriptor = splitBySemiColon[j];
                     descriptor = descriptor.substring(descriptor.indexOf("{") + 1);
                     descriptor = descriptor.substring(0, descriptor.indexOf("}"));
+                    //if start or end, make begin or finish
+                    if (descriptor.equals("start")) {
+                        descriptor = "begin";
+                    } else if (descriptor.equals("end")) {
+                        descriptor = "finish";
+                    }
                     //make a new (temp) task and add the data to it
                     Task newTask = new Task();
                     newTask.code = metaCode;
