@@ -4,16 +4,14 @@
 //////////////////////////////////////////////////////
 
 ///////////////////
-// Phase III notes:
+// Phase IV notes:
 ///////////////////
-Location of semaphore class instantiation:
-    • Locks.java, lines 5 - 7
-Location of mutex lock class definition:
-    • OSMutex.java, entire file
-Location of semaphore class definition:
-    • OSSemaphore.java, entire file
-Location of semaphore and mutex use:
-    • TaskProcessor.java, entire file
+Updates:
+    • OS can schedule tasks in FIFO, SJF, or PS
+    • OS can accept config files v1 - v4
+    • OS can accept begin/end or start/finish descriptors in meta file
+    • Allocated memory is deleted on application completion
+    • Config file accepts processor quantum number & CPU scheduling code
 
 
 ///////////////////
