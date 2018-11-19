@@ -146,7 +146,7 @@ public class FileHandler extends OS {
                     config.projectorQuantity = Integer.parseInt(splitByColon[1]);
                 } else if (splitByColon[0].equals("Hard drive quantity")) {
                     config.hardDriveQuantity = Integer.parseInt(splitByColon[1]);
-                } else if (splitByColon[0].equals("Processor Quantum Number")) {
+                } else if (splitByColon[0].equals("Processor Quantum Number {msec}")) {
                     config.quantumNumber = Integer.parseInt(splitByColon[1]);
                 } else if (splitByColon[0].equals("CPU Scheduling Code")) {
                     config.schedulingCode = splitByColon[1];

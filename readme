@@ -1,17 +1,13 @@
 //////////////////////////////////////////////////////
 //            OPERATING SYSTEM SIMULATOR            //
-//      Stephen Erdelyi Jr - CS 446 - Phase IV      //
+//      Stephen Erdelyi Jr - CS 446 - Phase V       //
 //////////////////////////////////////////////////////
 
 ///////////////////
-// Phase IV notes:
+// Phase V notes:
 ///////////////////
 Updates:
-    • OS can schedule tasks in FIFO, SJF, or PS
-    • OS can accept config files v1 - v4
-    • OS can accept begin/end or start/finish descriptors in meta file
-    • Allocated memory is deleted on application completion
-    • Config file accepts processor quantum number & CPU scheduling code
+    •
 
 
 ///////////////////

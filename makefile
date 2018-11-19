@@ -2,7 +2,7 @@ JFLAGS = -g
 JRUNNER = java
 MAIN = OS
 CONFIG = config_1.conf
-OSNUM = 4
+OSNUM = 5
 JC = javac
 .SUFFIXES: .java .class
 .java.class:
